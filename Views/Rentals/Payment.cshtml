@@ -1,0 +1,28 @@
+@model PaymentViewModel
+@{ ViewData["Title"] = "Odeme"; }
+<section class="form-shell reveal-on-scroll">
+    <h2>Guvenli Odeme</h2>
+    <p><strong>Ilan:</strong> @Model.ListingTitle</p>
+    <p class="studio-sub">Kiralama tamamlandiginda saticiya anlik bildirim gider.</p>
+
+    <form method="post">
+        <input asp-for="ListingId" type="hidden" />
+        <input asp-for="ListingTitle" type="hidden" />
+        <label>Kart Numarasi</label><input asp-for="CardNumber" inputmode="numeric" />
+        <span asp-validation-for="CardNumber" class="text-danger"></span>
+
+        <div class="row-2">
+            <div>
+                <label>Son Kullanma (AA/YY)</label><input asp-for="Expiry" />
+                <span asp-validation-for="Expiry" class="text-danger"></span>
+            </div>
+            <div>
+                <label>CVV</label><input asp-for="Cvv" inputmode="numeric" />
+                <span asp-validation-for="Cvv" class="text-danger"></span>
+            </div>
+        </div>
+
+        <button class="btn-glow" type="submit">Odemeyi Tamamla</button>
+        <div asp-validation-summary="All"></div>
+    </form>
+</section>

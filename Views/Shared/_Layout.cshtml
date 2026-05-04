@@ -1,0 +1,229 @@
+@using Evimsensin.Services
+@inject AppService AppService
+@{
+    var currentUserId = Context.Session.GetInt32("UserId");
+    var isLoggedIn = currentUserId.HasValue;
+    var role = Context.Session.GetString("Role") ?? string.Empty;
+    var userName = Context.Session.GetString("UserName") ?? "";
+    var isAdmin = role.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+    var unreadCount = isLoggedIn ? AppService.GetUnreadCount(currentUserId!.Value) : 0;
+    var pageKey = $"{ViewContext.RouteData.Values["controller"]}-{ViewContext.RouteData.Values["action"]}";
+
+    var initials = "U";
+    if (!string.IsNullOrWhiteSpace(userName))
+    {
+        initials = string.Concat(
+            userName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(2)
+                .Select(x => char.ToUpperInvariant(x[0]))
+        );
+
+        if (string.IsNullOrWhiteSpace(initials))
+        {
+            initials = "U";
+        }
+    }
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Evimsensin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body data-page="@pageKey" class="@(isLoggedIn ? "auth" : "guest")">
+    <div class="bg-noise"></div>
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+
+    <header class="lux-header" id="luxHeader">
+        <div class="header-left">
+            <a asp-controller="Home" asp-action="Index" class="nav-link">Home</a>
+            <a asp-controller="Listings" asp-action="Index" class="nav-link">Portfoy</a>
+            <a asp-controller="Home" asp-action="Faq" class="nav-link">SSS</a>
+        </div>
+
+        <a class="brand-center" asp-controller="Home" asp-action="Index">
+            <span class="brand-top">EVIMSENSIN</span>
+            <span class="brand-bottom">ELEGANCE ESTATE</span>
+        </a>
+
+        <div class="header-right">
+            @if (isLoggedIn)
+            {
+                <a class="mini-link msg-top-link" asp-controller="Messages" asp-action="Inbox" title="Mesajlar">
+                    Mesaj
+                    <span id="msgUnreadBadge" class="msg-badge @(unreadCount > 0 ? "show" : "")">@unreadCount</span>
+                </a>
+
+                <div class="profile-menu" data-profile-menu>
+                    <button class="profile-toggle" id="profileMenuToggle" type="button" aria-expanded="false">
+                        <span class="profile-avatar">@initials</span>
+                        <span class="profile-meta">
+                            <strong>@userName</strong>
+                            <small>@(isAdmin ? "Admin" : "Musteri")</small>
+                        </span>
+                        <span class="profile-caret">▾</span>
+                    </button>
+
+                    <div class="profile-panel" id="profileMenuPanel">
+                        <a asp-controller="Listings" asp-action="Create">Ilan Ver</a>
+                        <a asp-controller="Seller" asp-action="Dashboard">Satici Gosterge</a>
+                        <a asp-controller="Messages" asp-action="Inbox">Mesaj Kutusu</a>
+                        @if (isAdmin)
+                        {
+                            <a asp-controller="Admin" asp-action="Dashboard">Admin Panel</a>
+                        }
+                        <a asp-controller="Home" asp-action="About">Hakkimizda</a>
+                        <a asp-controller="Home" asp-action="Contact">Iletisim</a>
+                        <a class="danger-link" asp-controller="Account" asp-action="Logout">Cikis Yap</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="mini-link">Giris</a>
+                <a asp-controller="Account" asp-action="Register" class="btn-lux btn-outline">Kayit Ol</a>
+            }
+        </div>
+    </header>
+
+    @if (isLoggedIn)
+    {
+        <aside class="quick-dock reveal-on-scroll">
+            <a asp-controller="Listings" asp-action="Create" class="dock-btn dock-primary">+ Ilan Ver</a>
+            <a asp-controller="Listings" asp-action="Index" class="dock-btn">Ilanlar</a>
+            <a asp-controller="Seller" asp-action="Dashboard" class="dock-btn">Panel</a>
+            <a asp-controller="Messages" asp-action="Inbox" class="dock-btn dock-msg">
+                Mesajlar
+                <span id="msgUnreadBadgeDock" class="msg-badge @(unreadCount > 0 ? "show" : "")">@unreadCount</span>
+            </a>
+        </aside>
+    }
+
+    <main class="page-wrap" id="pageRoot">
+        @RenderBody()
+    </main>
+
+    <footer class="lux-footer">
+        <p>© 2026 Evimsensin | Premium Emlak Deneyimi</p>
+    </footer>
+
+    <div id="toastContainer" class="toast-stack"></div>
+
+    @if (isLoggedIn)
+    {
+        <script>
+            (() => {
+                const badgeTop = document.getElementById('msgUnreadBadge');
+                const badgeDock = document.getElementById('msgUnreadBadgeDock');
+                const toastContainer = document.getElementById('toastContainer');
+                const baseTitle = document.title;
+
+                let initialized = false;
+                let lastUnread = @unreadCount;
+                let lastNotifiedMessageId = Number(localStorage.getItem('evimsensin_last_notified_msg_id') || 0);
+
+                function paintBadge(el, count) {
+                    if (!el) return;
+                    el.textContent = count;
+                    el.classList.toggle('show', count > 0);
+                }
+
+                function updateTitle(count) {
+                    document.title = count > 0 ? `(${count}) ${baseTitle}` : baseTitle;
+                }
+
+                function beep() {
+                    try {
+                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.value = 880;
+                        gain.gain.value = 0.02;
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start();
+                        setTimeout(() => {
+                            osc.stop();
+                            ctx.close();
+                        }, 140);
+                    } catch {}
+                }
+
+                function showToast(title, text) {
+                    if (!toastContainer) return;
+                    const item = document.createElement('div');
+                    item.className = 'notify-toast';
+                    item.innerHTML = `<strong>${title}</strong><p>${text}</p>`;
+                    toastContainer.appendChild(item);
+                    setTimeout(() => item.classList.add('visible'), 12);
+                    setTimeout(() => {
+                        item.classList.remove('visible');
+                        setTimeout(() => item.remove(), 260);
+                    }, 5200);
+                }
+
+                async function showBrowserNotification(fromName, preview) {
+                    try {
+                        if (!('Notification' in window)) return;
+                        if (Notification.permission === 'default') {
+                            await Notification.requestPermission();
+                        }
+                        if (Notification.permission === 'granted') {
+                            new Notification('Evimsensin - Yeni Mesaj', {
+                                body: `${fromName}: ${preview}`,
+                                tag: 'evimsensin-new-message'
+                            });
+                        }
+                    } catch {}
+                }
+
+                async function refreshUnreadBadge() {
+                    try {
+                        const res = await fetch('/Messages/UnreadCount', { cache: 'no-store' });
+                        if (!res.ok) return;
+
+                        const data = await res.json();
+                        const count = Number(data.unread || 0);
+                        const latestId = Number(data.latestUnreadMessageId || 0);
+                        const fromName = data.fromName || 'Yeni Mesaj';
+                        const preview = data.preview || 'Yeni mesajiniz var.';
+
+                        paintBadge(badgeTop, count);
+                        paintBadge(badgeDock, count);
+                        updateTitle(count);
+
+                        if (initialized && count > lastUnread && latestId > lastNotifiedMessageId) {
+                            showToast('Yeni Mesaj', `${fromName}: ${preview}`);
+                            beep();
+                            showBrowserNotification(fromName, preview);
+                            lastNotifiedMessageId = latestId;
+                            localStorage.setItem('evimsensin_last_notified_msg_id', String(latestId));
+                        }
+
+                        if (!initialized && latestId > 0 && latestId > lastNotifiedMessageId) {
+                            localStorage.setItem('evimsensin_last_notified_msg_id', String(latestId));
+                            lastNotifiedMessageId = latestId;
+                        }
+
+                        lastUnread = count;
+                        initialized = true;
+                    } catch {}
+                }
+
+                refreshUnreadBadge();
+                setInterval(refreshUnreadBadge, 4000);
+            })();
+        </script>
+    }
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

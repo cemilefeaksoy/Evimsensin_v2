@@ -1,0 +1,159 @@
+@model ListingEditViewModel
+@using System.Text.Json
+@{
+    var isAdmin = (ViewBag.IsAdmin as bool?) == true;
+    var provinces = ViewBag.Provinces as List<string> ?? [];
+    var locationMapJson = ViewBag.LocationMapJson as string ?? "{}";
+}
+
+<form method="post" enctype="multipart/form-data" class="studio-form" id="listingForm">
+    <input asp-for="Id" type="hidden" />
+
+    <div class="studio-grid">
+        <div class="studio-col">
+            <label>Baslik</label>
+            <input asp-for="Title" placeholder="Orn: Bogaz manzarali rezidans" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+
+            <label>Aciklama</label>
+            <textarea asp-for="Description" placeholder="Evinizi etkileyici sekilde anlatin..."></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+
+            <div class="row-2">
+                <div>
+                    <label>Il</label>
+                    <select asp-for="Province" data-province-select data-location-map='@Html.Raw(locationMapJson)'>
+                        @foreach (var p in provinces)
+                        {
+                            <option value="@p">@p</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Province" class="text-danger"></span>
+                </div>
+                <div>
+                    <label>Ilce</label>
+                    <select asp-for="District" data-district-select data-selected="@Model.District"></select>
+                    <span asp-validation-for="District" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row-2">
+                <div>
+                    <label>Emlak Tipi</label>
+                    <select asp-for="PropertyType">
+                        <option>Daire</option>
+                        <option>Villa</option>
+                        <option>Rezidans</option>
+                        <option>Mustakil Ev</option>
+                        <option>Dublex</option>
+                        <option>Tiny House</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Oda Sayisi</label>
+                    <select asp-for="RoomCount">
+                        <option>1+1</option>
+                        <option>2+1</option>
+                        <option>3+1</option>
+                        <option>4+1</option>
+                        <option>5+1</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row-3">
+                <div>
+                    <label>Brut m²</label>
+                    <input asp-for="GrossSquareMeters" type="number" min="10" />
+                </div>
+                <div>
+                    <label>Net m²</label>
+                    <input asp-for="NetSquareMeters" type="number" min="10" />
+                </div>
+                <div>
+                    <label>Bina Yasi</label>
+                    <input asp-for="BuildingAge" type="number" min="0" />
+                </div>
+            </div>
+
+            <div class="row-3">
+                <div>
+                    <label>Bulundugu Kat</label>
+                    <input asp-for="Floor" type="number" min="0" />
+                </div>
+                <div>
+                    <label>Toplam Kat</label>
+                    <input asp-for="TotalFloors" type="number" min="1" />
+                </div>
+                <div>
+                    <label>Banyo</label>
+                    <input asp-for="BathroomCount" type="number" min="1" />
+                </div>
+            </div>
+
+            <label>Isinma Tipi</label>
+            <select asp-for="HeatingType">
+                <option>Kombi Dogalgaz</option>
+                <option>Merkezi</option>
+                <option>Yerden Isitma</option>
+                <option>Klima</option>
+                <option>Soba</option>
+            </select>
+
+            <div class="chip-grid">
+                <label class="chip-check"><input asp-for="Furnished" type="checkbox" /> Esyali</label>
+                <label class="chip-check"><input asp-for="Balcony" type="checkbox" /> Balkon</label>
+                <label class="chip-check"><input asp-for="Elevator" type="checkbox" /> Asansor</label>
+                <label class="chip-check"><input asp-for="Parking" type="checkbox" /> Otopark</label>
+                <label class="chip-check"><input asp-for="InSite" type="checkbox" /> Site Icerisi</label>
+                <label class="chip-check"><input asp-for="HasPool" type="checkbox" /> Havuz</label>
+            </div>
+
+            <div class="row-3">
+                <div>
+                    <label>Aylik Fiyat (TL)</label>
+                    <input asp-for="MonthlyPrice" type="number" min="1000" step="500" />
+                </div>
+                <div>
+                    <label>Depozito (TL)</label>
+                    <input asp-for="Deposit" type="number" min="0" step="500" />
+                </div>
+                <div>
+                    <label>Aidat (TL)</label>
+                    <input asp-for="Dues" type="number" min="0" step="50" />
+                </div>
+            </div>
+
+            @if (isAdmin)
+            {
+                <label class="chk admin-flag"><input asp-for="IsAdminRecommended" type="checkbox" /> ★ Admin Onerisi Olarak Isaretle</label>
+            }
+        </div>
+
+        <aside class="studio-preview-panel">
+            <label class="upload-zone" for="ImageFile">
+                <span class="upload-title">Fotograf Yukle</span>
+                <span class="upload-sub">JPG / PNG / WEBP, max 8MB</span>
+                <span class="upload-pill">Dosya Sec</span>
+                <input asp-for="ImageFile" id="ImageFile" type="file" accept=".jpg,.jpeg,.png,.webp" data-image-upload />
+            </label>
+            <span asp-validation-for="ImageFile" class="text-danger"></span>
+
+            <label>Veya Fotograf URL</label>
+            <input asp-for="ImageUrl" placeholder="/img/seed-1.jpeg veya https://..." data-image-url />
+            <span asp-validation-for="ImageUrl" class="text-danger"></span>
+
+            <div class="live-preview">
+                <p>Canli Onizleme</p>
+                <img id="livePreviewImage" src="@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "/img/seed-1.jpeg" : Model.ImageUrl)" alt="Onizleme" />
+            </div>
+        </aside>
+    </div>
+
+    <div asp-validation-summary="All" class="validation-box"></div>
+
+    <div class="studio-actions">
+        <button class="btn-glow btn-big" type="submit">Ilani Kaydet</button>
+        <a class="btn-chat" asp-controller="Listings" asp-action="Index">Vazgec</a>
+    </div>
+</form>

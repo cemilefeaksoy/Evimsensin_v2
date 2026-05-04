@@ -1,0 +1,33 @@
+@model List<Listing>
+@{ ViewData["Title"] = "Ilanlar"; }
+
+<section class="panel reveal-on-scroll">
+    <div class="section-head slim">
+        <h2>Tum Ilanlar</h2>
+        <p>Il / ilce filtresi ile portfoyu daraltin, detaydan teklif verin veya kiralama yapin.</p>
+    </div>
+
+    <form method="get" class="inline-form">
+        <input name="city" placeholder="Orn: Istanbul / Kadikoy" />
+        <button type="submit" class="btn-lux btn-thin">Filtrele</button>
+    </form>
+</section>
+
+<section class="grid-cards">
+@foreach (var item in Model)
+{
+    <article class="card-premium tilt-card reveal-on-scroll">
+        <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+        <div>
+            <h3>@item.Title @if (item.IsAdminRecommended) { <span class="badge-star">★ Admin Oneri</span> }</h3>
+            <p>@item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL/ay</p>
+            <p>@item.PropertyType · @item.RoomCount · @item.NetSquareMeters m²</p>
+            <p class="owner-pill">Ilan Sahibi: @item.OwnerName</p>
+            @if (item.IsRented) { <span class="status-rented">Kiralandi</span> }
+            <div class="actions actions-pro">
+                <a class="btn-chat" asp-action="Details" asp-route-id="@item.Id">Detaya Git</a>
+            </div>
+        </div>
+    </article>
+}
+</section>

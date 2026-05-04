@@ -1,0 +1,72 @@
+@model ChatThreadViewModel
+@{ ViewData["Title"] = "Sohbet"; }
+<section class="panel chat-shell">
+    <div class="chat-head">
+        <h2>@Model.OtherUser.FullName ile Sohbet</h2>
+        <span class="live-state"><span class="live-dot"></span> Canli</span>
+    </div>
+
+    <div id="chatList" class="chat-list">
+        @foreach (var msg in Model.Messages)
+        {
+            var mine = msg.FromUserId == Model.CurrentUserId;
+            <div class="chat-bubble @(mine ? "mine" : "other")">
+                <p>@msg.Content</p>
+                <small>@msg.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small>
+            </div>
+        }
+    </div>
+
+    <form asp-action="Send" method="post" class="chat-form">
+        <input type="hidden" name="withUserId" value="@ViewBag.WithUserId" />
+        <input name="content" placeholder="Mesajinizi yazin..." autocomplete="off" maxlength="1000" />
+        <button type="submit" class="btn-glow">Gonder</button>
+    </form>
+</section>
+
+@section Scripts {
+<script>
+(() => {
+    const withUserId = @ViewBag.WithUserId;
+    const currentUserId = @Model.CurrentUserId;
+    const container = document.getElementById('chatList');
+    let signature = '';
+
+    const escapeHtml = (value) => {
+        const div = document.createElement('div');
+        div.textContent = value ?? '';
+        return div.innerHTML;
+    };
+
+    function isNearBottom(el) {
+        return el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    }
+
+    async function refreshConversation() {
+        try {
+            const shouldStickBottom = isNearBottom(container);
+            const res = await fetch(`/Messages/Conversation?withUserId=${withUserId}`, { cache: 'no-store' });
+            if (!res.ok) return;
+
+            const data = await res.json();
+            const nextSignature = data.length ? `${data[data.length - 1].id}-${data.length}` : '0';
+            if (nextSignature === signature) return;
+            signature = nextSignature;
+
+            const html = data.map(m => {
+                const mine = Number(m.fromUserId) === Number(currentUserId);
+                return `<div class="chat-bubble ${mine ? 'mine' : 'other'}"><p>${escapeHtml(m.content)}</p><small>${escapeHtml(m.createdAt)}</small></div>`;
+            }).join('');
+
+            container.innerHTML = html;
+            if (shouldStickBottom) {
+                container.scrollTop = container.scrollHeight;
+            }
+        } catch {}
+    }
+
+    refreshConversation();
+    setInterval(refreshConversation, 3000);
+})();
+</script>
+}

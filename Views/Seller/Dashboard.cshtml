@@ -1,0 +1,222 @@
+@model SellerDashboardViewModel
+@using System.Text.Json
+@using Evimsensin.Models
+@{
+    ViewData["Title"] = "Satici Gosterge";
+
+    var activeListings = Model.TotalListings - Model.RentedListings;
+    var totalOffers = Model.IncomingOffers.Count;
+    var acceptedOffers = Model.IncomingOffers.Count(x => x.Status == OfferStatus.Accepted);
+    var rejectedOffers = Model.IncomingOffers.Count(x => x.Status == OfferStatus.Rejected);
+    var offerAcceptanceRate = totalOffers == 0 ? 0 : Math.Round((decimal)acceptedOffers / totalOffers * 100m, 1);
+    var avgOffer = totalOffers == 0 ? 0 : Math.Round(Model.IncomingOffers.Average(x => x.Amount), 0);
+
+    var cityGroups = Model.MyListings
+        .GroupBy(x => x.Province)
+        .Select(g => new { City = g.Key, Count = g.Count() })
+        .OrderByDescending(x => x.Count)
+        .Take(6)
+        .ToList();
+
+    var listingGroups = Model.MyListings
+        .Select(l => new
+        {
+            Title = l.Title.Length > 22 ? l.Title[..22] + "..." : l.Title,
+            Offers = Model.IncomingOffers.Count(o => o.ListingTitle == l.Title)
+        })
+        .Take(8)
+        .ToList();
+
+    var chartData = new
+    {
+        rented = Model.RentedListings,
+        active = activeListings,
+        pending = Model.PendingOffers,
+        accepted = acceptedOffers,
+        rejected = rejectedOffers,
+        cityLabels = cityGroups.Select(x => x.City).ToList(),
+        cityValues = cityGroups.Select(x => x.Count).ToList(),
+        listingLabels = listingGroups.Select(x => x.Title).ToList(),
+        listingOfferValues = listingGroups.Select(x => x.Offers).ToList()
+    };
+
+    var dashboardJson = JsonSerializer.Serialize(chartData);
+}
+
+@if (TempData["Success"] is string success && !string.IsNullOrWhiteSpace(success))
+{
+    <section class="panel toast-inline success">@success</section>
+}
+@if (TempData["Error"] is string error && !string.IsNullOrWhiteSpace(error))
+{
+    <section class="panel toast-inline danger">@error</section>
+}
+
+<section class="dashboard-shell reveal-on-scroll" data-dashboard-json='@Html.Raw(dashboardJson)'>
+    <div class="section-head slim">
+        <h2>Satici Gosterge Paneli</h2>
+        <p>Ilan durumu, kiralama orani, teklifler ve performans tablolari tek ekranda.</p>
+    </div>
+
+    <div class="kpi-grid">
+        <article class="kpi-card">
+            <h3>Toplam Ilan</h3>
+            <strong data-count-to="@Model.TotalListings">@Model.TotalListings</strong>
+            <span>Portfoy buyuklugu</span>
+        </article>
+        <article class="kpi-card">
+            <h3>Kiralandi</h3>
+            <strong data-count-to="@Model.RentedListings">@Model.RentedListings</strong>
+            <span>%@Model.ConversionRate donusum</span>
+        </article>
+        <article class="kpi-card">
+            <h3>Bekleyen Teklif</h3>
+            <strong data-count-to="@Model.PendingOffers">@Model.PendingOffers</strong>
+            <span>Aksiyon bekliyor</span>
+        </article>
+        <article class="kpi-card">
+            <h3>Ortalama Teklif</h3>
+            <strong data-count-to="@avgOffer">@avgOffer.ToString("N0")</strong>
+            <span>TL</span>
+        </article>
+        <article class="kpi-card">
+            <h3>Aktif Ilan</h3>
+            <strong data-count-to="@activeListings">@activeListings</strong>
+            <span>Kiralanmamis</span>
+        </article>
+        <article class="kpi-card">
+            <h3>Toplam Teklif</h3>
+            <strong data-count-to="@totalOffers">@totalOffers</strong>
+            <span>Gelen teklif adedi</span>
+        </article>
+        <article class="kpi-card">
+            <h3>Kabul Orani</h3>
+            <strong data-count-to="@offerAcceptanceRate">%@offerAcceptanceRate</strong>
+            <span>Teklif basarisi</span>
+        </article>
+        <article class="kpi-card">
+            <h3>Reddedilen</h3>
+            <strong data-count-to="@rejectedOffers">@rejectedOffers</strong>
+            <span>Reddedilen teklif</span>
+        </article>
+    </div>
+
+    <div class="dashboard-charts">
+        <article class="panel chart-panel">
+            <h3>Kiralama Durumu</h3>
+            <canvas id="rentRatioCanvas" width="360" height="240"></canvas>
+        </article>
+        <article class="panel chart-panel">
+            <h3>Teklif Durum Dagilimi</h3>
+            <canvas id="offerStatusCanvas" width="360" height="240"></canvas>
+        </article>
+        <article class="panel chart-panel chart-wide">
+            <h3>Sehirlere Gore Ilan Dagilimi</h3>
+            <canvas id="cityDistCanvas" width="800" height="260"></canvas>
+        </article>
+        <article class="panel chart-panel chart-wide">
+            <h3>Ilan Bazli Teklif Yogunlugu</h3>
+            <canvas id="listingPerfCanvas" width="800" height="260"></canvas>
+        </article>
+    </div>
+</section>
+
+<section class="panel reveal-on-scroll">
+    <h2>Ilan Performans Tablosu</h2>
+    <div class="offers-table-wrap">
+        <table class="lux-table">
+            <thead>
+                <tr>
+                    <th>Ilan</th>
+                    <th>Konum</th>
+                    <th>Fiyat</th>
+                    <th>Durum</th>
+                    <th>Islem</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var l in Model.MyListings)
+            {
+                <tr>
+                    <td>@l.Title</td>
+                    <td>@l.Province / @l.District</td>
+                    <td>@l.MonthlyPrice.ToString("N0") TL</td>
+                    <td>
+                        @if (l.IsRented)
+                        {
+                            <span class="status-rented">Kiralandi</span>
+                        }
+                        else
+                        {
+                            <span class="status-live">Aktif</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="offer-actions">
+                            <a class="btn-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@l.Id">Duzenle</a>
+                            <a class="btn-chat" asp-controller="Listings" asp-action="Details" asp-route-id="@l.Id">Detay</a>
+                            <form asp-controller="Listings" asp-action="Delete" method="post">
+                                <input type="hidden" name="id" value="@l.Id" />
+                                <button type="submit" class="btn-delete">Sil</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel reveal-on-scroll">
+    <h2>Gelen Teklifler</h2>
+    <div class="offers-table-wrap">
+        <table class="lux-table">
+            <thead>
+                <tr>
+                    <th>Ilan</th>
+                    <th>Kullanici</th>
+                    <th>Tutar</th>
+                    <th>Durum</th>
+                    <th>Not</th>
+                    <th>Islem</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var o in Model.IncomingOffers)
+            {
+                <tr>
+                    <td>@o.ListingTitle</td>
+                    <td>@o.FromUserName</td>
+                    <td>@o.Amount.ToString("N0") TL</td>
+                    <td>
+                        @if (o.Status == OfferStatus.Pending)
+                        {
+                            <span class="status-live">Pending</span>
+                        }
+                        else if (o.Status == OfferStatus.Accepted)
+                        {
+                            <span class="status-accepted">Accepted</span>
+                        }
+                        else
+                        {
+                            <span class="status-rejected">Rejected</span>
+                        }
+                    </td>
+                    <td>@o.Note</td>
+                    <td>
+                        @if (o.Status == OfferStatus.Pending)
+                        {
+                            <form asp-action="UpdateOfferStatus" method="post" class="offer-actions">
+                                <input type="hidden" name="offerId" value="@o.OfferId" />
+                                <button type="submit" name="status" value="Accepted" class="btn-edit">Kabul</button>
+                                <button type="submit" name="status" value="Rejected" class="btn-delete">Reddet</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

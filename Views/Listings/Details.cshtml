@@ -1,0 +1,147 @@
+@model ListingDetailsViewModel
+@{
+    ViewData["Title"] = "Ilan Detay";
+    var currentUserId = Context.Session.GetInt32("UserId");
+}
+
+@if (TempData["Success"] is string success && !string.IsNullOrWhiteSpace(success))
+{
+    <section class="panel toast-inline success">@success</section>
+}
+@if (TempData["Error"] is string error && !string.IsNullOrWhiteSpace(error))
+{
+    <section class="panel toast-inline danger">@error</section>
+}
+
+<section class="detail-wrap reveal-on-scroll">
+    <img src="@Model.Listing.ImageUrl" alt="@Model.Listing.Title" class="detail-image" />
+    <div class="panel detail-luxury-panel">
+        <h2>@Model.Listing.Title @if (Model.Listing.IsAdminRecommended) { <span class="badge-star">★ Admin Oneri</span> }</h2>
+        <p>@Model.Listing.Description</p>
+
+        <div class="detail-price">@Model.Listing.MonthlyPrice.ToString("N0") TL / ay</div>
+        <p class="owner-pill">Ilan Sahibi: @Model.Listing.OwnerName</p>
+
+        <div class="feature-grid">
+            <div><strong>Il / Ilce</strong><span>@Model.Listing.Province / @Model.Listing.District</span></div>
+            <div><strong>Emlak Tipi</strong><span>@Model.Listing.PropertyType</span></div>
+            <div><strong>Oda</strong><span>@Model.Listing.RoomCount</span></div>
+            <div><strong>Brut/Net</strong><span>@Model.Listing.GrossSquareMeters m² / @Model.Listing.NetSquareMeters m²</span></div>
+            <div><strong>Kat</strong><span>@Model.Listing.Floor / @Model.Listing.TotalFloors</span></div>
+            <div><strong>Bina Yasi</strong><span>@Model.Listing.BuildingAge</span></div>
+            <div><strong>Banyo</strong><span>@Model.Listing.BathroomCount</span></div>
+            <div><strong>Isinma</strong><span>@Model.Listing.HeatingType</span></div>
+            <div><strong>Depozito</strong><span>@Model.Listing.Deposit.ToString("N0") TL</span></div>
+            <div><strong>Aidat</strong><span>@Model.Listing.Dues.ToString("N0") TL</span></div>
+        </div>
+
+        <div class="amenity-row">
+            @if (Model.Listing.Furnished) { <span>Esyali</span> }
+            @if (Model.Listing.Balcony) { <span>Balkon</span> }
+            @if (Model.Listing.Elevator) { <span>Asansor</span> }
+            @if (Model.Listing.Parking) { <span>Otopark</span> }
+            @if (Model.Listing.InSite) { <span>Site</span> }
+            @if (Model.Listing.HasPool) { <span>Havuz</span> }
+            @if (Model.Listing.IsRented) { <span class="status-rented">Kiralandi</span> }
+        </div>
+
+        <div class="detail-cta-row">
+            @if (Model.CanRent)
+            {
+                <a class="btn-glow" asp-controller="Rentals" asp-action="Payment" asp-route-listingId="@Model.Listing.Id">Ilani Kirala</a>
+            }
+            @if (Model.CanOffer)
+            {
+                <a class="btn-chat" href="#offerBox">Teklif Ver</a>
+                <a class="btn-chat" asp-controller="Messages" asp-action="Chat" asp-route-withUserId="@Model.Listing.OwnerUserId">Saticiya Mesaj At</a>
+            }
+        </div>
+
+        @if (Model.CanEdit)
+        {
+            <div class="actions actions-pro">
+                <a class="btn-edit" asp-action="Edit" asp-route-id="@Model.Listing.Id">Duzenle</a>
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" name="id" value="@Model.Listing.Id" />
+                    <button type="submit" class="btn-delete">Sil</button>
+                </form>
+            </div>
+        }
+    </div>
+</section>
+
+@if (Model.CanOffer)
+{
+    <section id="offerBox" class="panel reveal-on-scroll">
+        <h3>Bu Ilan Icin Teklif Ver</h3>
+        <form asp-action="CreateOffer" method="post" class="offer-form">
+            <input type="hidden" name="ListingId" value="@Model.Listing.Id" />
+            <div>
+                <label>Teklif Tutari (TL)</label>
+                <input type="number" name="Amount" min="1000" step="500" required />
+            </div>
+            <div>
+                <label>Notunuz</label>
+                <textarea name="Note" placeholder="Orn: 12 aylik pesin odeme yapabilirim"></textarea>
+            </div>
+            <button type="submit" class="btn-glow">Teklifi Gonder</button>
+        </form>
+    </section>
+}
+
+@if (Model.Offers.Any())
+{
+    <section class="panel reveal-on-scroll">
+        <h3>Gelen Teklifler</h3>
+        <div class="offers-table-wrap">
+            <table class="lux-table">
+                <thead>
+                    <tr>
+                        <th>Kullanici</th>
+                        <th>Tutar</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var o in Model.Offers)
+                {
+                    <tr>
+                        <td>@o.FromUserName</td>
+                        <td>@o.Amount.ToString("N0") TL</td>
+                        <td>@o.Status</td>
+                        <td>@o.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+
+<section class="panel reveal-on-scroll">
+    <h3>Yorumlar</h3>
+    @if (Model.IsLoggedIn)
+    {
+        <form asp-action="AddComment" method="post" class="inline-form">
+            <input type="hidden" name="listingId" value="@Model.Listing.Id" />
+            <input name="content" placeholder="Yorum yaz..." />
+            <button type="submit">Yayinla</button>
+        </form>
+    }
+    @foreach (var c in Model.Comments)
+    {
+        <div class="comment-box">
+            <strong>@c.AuthorName</strong> <span>@c.CreatedAt.ToLocalTime()</span>
+            <p>@c.Content</p>
+            @if (Model.IsAdmin)
+            {
+                <form asp-controller="Admin" asp-action="DeleteComment" method="post">
+                    <input type="hidden" name="commentId" value="@c.Id" />
+                    <input type="hidden" name="listingId" value="@Model.Listing.Id" />
+                    <button type="submit">Yorumu Sil</button>
+                </form>
+            }
+        </div>
+    }
+</section>
