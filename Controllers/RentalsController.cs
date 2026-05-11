@@ -16,56 +16,44 @@ public class RentalsController : Controller
     [HttpGet]
     public IActionResult Payment(int listingId)
     {
+        return CreateRentalRequestAndRedirect(listingId);
+    }
+
+    [HttpPost]
+    public IActionResult Payment(PaymentViewModel model)
+    {
+        return CreateRentalRequestAndRedirect(model.ListingId);
+    }
+
+    [HttpPost]
+    public IActionResult RentalRequest(int listingId)
+    {
+        return CreateRentalRequestAndRedirect(listingId);
+    }
+
+    private IActionResult CreateRentalRequestAndRedirect(int listingId)
+    {
         var userId = AuthSession.UserId(this);
         if (!userId.HasValue) return RedirectToAction("Login", "Account");
 
         var listing = _appService.GetListing(listingId);
         if (listing is null) return NotFound();
 
-        if (listing.OwnerUserId == userId.Value)
-        {
-            TempData["Error"] = "Satici kendi ilanini kiralayamaz.";
-            return RedirectToAction("Details", "Listings", new { id = listingId });
-        }
-
-        if (listing.IsRented)
-        {
-            TempData["Error"] = "Bu ilan zaten kiralandi.";
-            return RedirectToAction("Details", "Listings", new { id = listingId });
-        }
-
-        return View(new PaymentViewModel
-        {
-            ListingId = listingId,
-            ListingTitle = listing.Title
-        });
-    }
-
-    [HttpPost]
-    public IActionResult Payment(PaymentViewModel model)
-    {
-        var userId = AuthSession.UserId(this);
-        if (!userId.HasValue) return RedirectToAction("Login", "Account");
-        if (!ModelState.IsValid) return View(model);
-
-        var listing = _appService.GetListing(model.ListingId);
-        if (listing is null) return NotFound();
-
         try
         {
-            var last4 = model.CardNumber.Length >= 4 ? model.CardNumber[^4..] : "0000";
-            _appService.CreateRentalRequest(model.ListingId, userId.Value, last4);
+            _appService.CreateRentalRequest(listingId, userId.Value, string.Empty);
+            _appService.SendMessage(
+                userId.Value,
+                listing.OwnerUserId,
+                $"Kiralama talebi: {listing.Title} ilanı kiralanmak isteniyor. Tekliflerim sayfasından kabul veya ret verebilirsiniz.");
 
-            _appService.SendMessage(userId.Value, listing.OwnerUserId,
-                $"Kiralama talebi: {listing.Title} ilani icin odeme adimi tamamlandi. Lutfen kabul/ret verin.");
-
-            TempData["Success"] = "Odeme bilgisi alindi. Talebiniz saticinin onayina gonderildi.";
+            TempData["Success"] = "Kiralama talebiniz satıcıya iletildi. Satıcı kabul ederse ilan kiralandı olarak işaretlenecek.";
         }
         catch (Exception ex)
         {
             TempData["Error"] = ex.Message;
         }
 
-        return RedirectToAction("Details", "Listings", new { id = model.ListingId });
+        return RedirectToAction("Details", "Listings", new { id = listingId });
     }
 }

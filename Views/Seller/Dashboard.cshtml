@@ -2,7 +2,7 @@
 @using System.Text.Json
 @using Evimsensin.Models
 @{
-    ViewData["Title"] = "Satici Paneli";
+    ViewData["Title"] = "Satıcı Paneli";
 
     var activeListings = Model.TotalListings - Model.RentedListings;
     var totalOffers = Model.IncomingOffers.Count;
@@ -56,16 +56,16 @@
 <div class="seller-dash-hero reveal-on-scroll" data-dashboard-json='@Html.Raw(dashboardJson)'>
     <div class="seller-dash-header">
         <div>
-            <span class="studio-badge">Satici Merkezi</span>
+            <span class="studio-badge">Satıcı Merkezi</span>
             <h1 class="admin-hero-title">Performans Paneli</h1>
-            <p class="studio-sub">Ilanlarinizin durumu, gelen teklifler ve kazanc istatistikleri.</p>
+            <p class="studio-sub">İlanlarinizin durumu, gelen teklifler ve kazanc istatistikleri.</p>
         </div>
         <div class="seller-dash-quick">
             @if (activeListings > 0)
             {
-                <a asp-controller="Listings" asp-action="MyListings" class="btn-lux btn-thin">📋 Ilanlarim</a>
+                <a asp-controller="Listings" asp-action="MyListings" class="btn-lux btn-thin">📋 İlanlarim</a>
             }
-            <a asp-controller="Listings" asp-action="Create" class="btn-glow">+ Ilan Ver</a>
+            <a asp-controller="Listings" asp-action="Create" class="btn-glow">+ İlan Ver</a>
         </div>
     </div>
 
@@ -74,7 +74,7 @@
             <div class="dash-stat-icon">🏠</div>
             <div class="dash-stat-body">
                 <div class="dash-stat-val" data-count-to="@Model.TotalListings">@Model.TotalListings</div>
-                <div class="dash-stat-label">Toplam Ilan</div>
+                <div class="dash-stat-label">Toplam İlan</div>
             </div>
             <div class="dash-stat-bar">
                 <div class="dash-stat-bar-fill" style="width:100%"></div>
@@ -85,7 +85,7 @@
             <div class="dash-stat-icon">✅</div>
             <div class="dash-stat-body">
                 <div class="dash-stat-val" data-count-to="@activeListings">@activeListings</div>
-                <div class="dash-stat-label">Aktif Ilan</div>
+                <div class="dash-stat-label">Aktif İlan</div>
             </div>
             <div class="dash-stat-bar">
                 <div class="dash-stat-bar-fill" style="width:@(Model.TotalListings == 0 ? 0 : activeListings * 100 / Model.TotalListings)%"></div>
@@ -169,23 +169,23 @@
             <canvas id="offerStatusCanvas" width="360" height="240"></canvas>
         </article>
         <article class="panel chart-panel chart-wide">
-            <h3>Sehirlere Gore Ilan Dagilimi</h3>
+            <h3>Şehirlere Gore İlan Dagilimi</h3>
             <canvas id="cityDistCanvas" width="800" height="260"></canvas>
         </article>
         <article class="panel chart-panel chart-wide">
-            <h3>Ilan Bazli Teklif Yogunlugu</h3>
+            <h3>İlan Bazli Teklif Yogunlugu</h3>
             <canvas id="listingPerfCanvas" width="800" height="260"></canvas>
         </article>
     </div>
 </div>
 
 <section class="panel reveal-on-scroll" style="margin-top:24px;">
-    <h2>Ilan Performans Tablosu</h2>
+    <h2>İlan Performans Tablosu</h2>
     <div class="offers-table-wrap">
         <table class="lux-table">
             <thead>
                 <tr>
-                    <th>Ilan</th>
+                    <th>İlan</th>
                     <th>Konum</th>
                     <th>Fiyat</th>
                     <th>Durum</th>
@@ -197,7 +197,7 @@
             @foreach (var l in Model.MyListings)
             {
                 <tr>
-                    <td>@l.Title</td>
+                    <td><a class="table-link" asp-controller="Listings" asp-action="Details" asp-route-id="@l.Id">@l.Title</a></td>
                     <td>@l.Province / @l.District</td>
                     <td>@l.MonthlyPrice.ToString("N0") TL</td>
                     <td>
@@ -213,7 +213,7 @@
                     <td style="font-size:0.8rem;color:var(--muted);">@l.CreatedAt.ToString("dd.MM.yy")</td>
                     <td>
                         <div class="offer-actions">
-                            <a class="btn-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@l.Id">Duzenle</a>
+                            <a class="btn-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@l.Id">Düzenle</a>
                             <a class="btn-chat" asp-controller="Listings" asp-action="Details" asp-route-id="@l.Id">Detay</a>
                             <form asp-controller="Listings" asp-action="Delete" method="post">
                                 <input type="hidden" name="id" value="@l.Id" />
@@ -236,7 +236,7 @@
             <table class="lux-table">
                 <thead>
                     <tr>
-                        <th>Ilan</th>
+                        <th>İlan</th>
                         <th>Tip</th>
                         <th>Kullanici</th>
                         <th>Tutar</th>
@@ -249,7 +249,7 @@
                 @foreach (var o in Model.IncomingOffers)
                 {
                     <tr>
-                        <td>@o.ListingTitle</td>
+                        <td><a class="table-link" asp-controller="Listings" asp-action="Details" asp-route-id="@o.ListingId">@o.ListingTitle</a></td>
                         <td>@(o.Type == OfferType.RentalRequest ? "Kiralama" : "Fiyat")</td>
                         <td>@o.FromUserName</td>
                         <td>@o.Amount.ToString("N0") TL</td>

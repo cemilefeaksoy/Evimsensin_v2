@@ -1,56 +1,73 @@
-@{ ViewData["Title"] = "SSS"; }
-<section class="panel faq-panel">
-    <h2>Rehber ve Sik Sorulan Sorular</h2>
-    <p class="studio-sub">Evimsensin platformunu daha verimli kullanmaniz icin hizli rehber ve en cok sorulan sorular.</p>
+@{
+    ViewData["Title"] = "Rehber ve SSS";
+}
 
-    <div class="faq-item">
-        <h3>Hizli Rehber: Ilan nasil verilir?</h3>
-        <p>1) Hesap olusturun ve giris yapin. 2) "Ilan Ver" adimina gecin. 3) Baslik, aciklama, sehir/ilce, fiyat ve ev ozelliklerini doldurun. 4) Bir veya daha fazla fotograf ekleyin. 5) Kesinti bilgilendirme kutusunu onaylayip ilani yayinlayin.</p>
+<section class="panel faq-panel guide-page reveal-on-scroll">
+    <div class="section-head slim">
+        <span class="studio-badge">Rehber</span>
+        <h2>Evimsensin Kullanım Rehberi ve SSS</h2>
+        <p>İlan yayınlama, kiralama talebi, teklif yönetimi, mesajlaşma, yorum ve puanlama akışlarının tamamı.</p>
     </div>
 
-    <div class="faq-item">
-        <h3>1) Platformda hangi kullanici rolleri var?</h3>
-        <p>Kullanici ve admin rolleri vardir. Kullanicilar ilan verebilir, teklif alabilir, kiralama surecini yonetebilir ve mesajlasabilir. Admin ise platform geneli denetim, kullanici yonetimi ve ozel etiketleme islemlerini yapar.</p>
-    </div>
+    <div class="guide-grid">
+        <article class="faq-item">
+            <h3>Hızlı başlangıç</h3>
+            <p>Hesap oluşturun, giriş yapın, ilanları filtreleyin veya kendi ilanınızı yayınlayın. Profil menüsünden ilanlarınızı, kiraladıklarınızı, satıcı panelini, satıcı tekliflerini ve mesaj kutusunu yönetebilirsiniz.</p>
+        </article>
 
-    <div class="faq-item">
-        <h3>2) Ilan verebilmek icin admin onayi gerekir mi?</h3>
-        <p>Hayir. Kayit olan kullanicilar, gerekli alanlari doldurup fotograflarini ekleyerek dogrudan ilan yayinlayabilir.</p>
-    </div>
+        <article class="faq-item">
+            <h3>İlan nasıl verilir?</h3>
+            <p>İlan Ver sayfasında başlık, açıklama, şehir, ilçe, fiyat, depozito, aidat, oda sayısı, metrekare, kat, bina yaşı ve imkanları doldurun. En az bir görsel ekleyin. Çoklu görsel yüklediğinizde detay sayfasında galeri olarak görünür.</p>
+        </article>
 
-    <div class="faq-item">
-        <h3>3) Ilanlarda birden fazla fotograf eklenebilir mi?</h3>
-        <p>Evet. Ilan formunda hem dosya yukleme ile coklu fotograf, hem de URL alanlari ile ek gorseller kullanabilirsiniz. Ilan detayinda fotograflar sag/sol ok ile gezilebilir.</p>
-    </div>
+        <article class="faq-item">
+            <h3>Kiralama talebi nasıl çalışır?</h3>
+            <p>İlan detayındaki İlanı Kirala düğmesi ödeme sayfasına götürmez; satıcıya kiralama talebi gönderir. Satıcı bu talebi Satıcı Teklifleri sayfasında görür. Satıcı kabul ederse ilan Kiralandı durumuna geçer, diğer bekleyen talepler kapanır.</p>
+        </article>
 
-    <div class="faq-item">
-        <h3>4) Kiralama ve teklif sureci nasil isler?</h3>
-        <p>Kullanici ilandan teklif veya kiralama talebi olusturur. Talep saticiya duser. Satici kabul veya red verir. Kabul edilen kiralama taleplerinde ilan "KIRALANDI" etiketi alir.</p>
-    </div>
+        <article class="faq-item">
+            <h3>Teklif nasıl verilir?</h3>
+            <p>Kiralama yerine fiyat teklifi göndermek isteyen kullanıcı Teklif Ver alanından tutar ve not girer. Satıcı teklifi kabul veya reddeder. Fiyat teklifinin kabul edilmesi ilanı otomatik kiralandı yapmaz; kiralandı durumu yalnızca kiralama talebi kabul edilince oluşur.</p>
+        </article>
 
-    <div class="faq-item">
-        <h3>5) Kimler yorum ve puanlama yapabilir?</h3>
-        <p>Yorum ve puanlama, ilgili evi kiralayan kullanicilar tarafindan yapilir. Bu sayede puanlar daha gercekci ve guvenilir kalir.</p>
-    </div>
+        <article class="faq-item">
+            <h3>Satıcı teklifleri nereden görülür?</h3>
+            <p>Profil menüsündeki Satıcı Teklifleri bağlantısından tüm teklif ve kiralama talepleri listelenir. Bekleyenler için Kabul Et ve Reddet işlemleri vardır. Kabul edilen kiralama talebi ilanı kapatır ve kullanıcıya mesaj gönderir.</p>
+        </article>
 
-    <div class="faq-item">
-        <h3>6) Gunun tavsiye edilen evleri nasil belirlenir?</h3>
-        <p>Bu alan admin tarafindan secilen ilanlardan olusur ve en fazla 4 ilan gosterilir. Admin istedigi zaman ekleyip kaldirabilir.</p>
-    </div>
+        <article class="faq-item">
+            <h3>Yorum ve puanlama kimlere açık?</h3>
+            <p>Yorum ve puanlama yalnızca ilgili ilanı kiralamış kullanıcıya açıktır. Böylece sahte değerlendirme riski azalır. Kullanıcı hem ilanı hem satıcıyı 1-5 arasında puanlar; sayfadaki ilan puanı ve satıcı puanı bu değerlerin ortalamasıdır.</p>
+        </article>
 
-    <div class="faq-item">
-        <h3>7) Admin onerisi etiketi ne anlama gelir?</h3>
-        <p>"Admin Onerisi" etiketi, platform ekibi tarafindan one cikarilan ilanlari belirtir. Bu etiket gunun tavsiyesi ile ayni sey degildir.</p>
-    </div>
+        <article class="faq-item">
+            <h3>Ortalama puan nasıl hesaplanır?</h3>
+            <p>İlan puanı, o ilana verilen tüm ilan puanlarının ortalamasıdır. Satıcı puanı ise satıcının tüm ilanlarından aldığı satıcı puanlarının ortalamasıdır. Kullanıcı puanını güncellerse eski kaydın üzerine yazılır.</p>
+        </article>
 
-    <div class="faq-item">
-        <h3>8) Ilanimi one cikarmak istiyorum, ne yapmaliyim?</h3>
-        <p>Ilaninizi one cikarma talepleri icin iletisim sayfasindaki bilgilerden bize ulasabilirsiniz:</p>
-        <p><strong>E-posta:</strong> aksoycemilefe@gmail.com<br /><strong>Telefon:</strong> +90 533 978 49 07</p>
-    </div>
+        <article class="faq-item">
+            <h3>Mesajlaşma nasıl kullanılır?</h3>
+            <p>İlan detayından satıcıya mesaj atabilirsiniz. Yeni mesaj geldiğinde üst menü ve hızlı menüde sayaç görünür. Mesaj kutusunda konuşmalar en son mesaja göre sıralanır.</p>
+        </article>
 
-    <div class="faq-item">
-        <h3>9) Mobil uygulama (Flutter) baglantisi mumkun mu?</h3>
-        <p>Evet. API altyapisi sayesinde Flutter tarafina kolayca baglanabilir. Sonraki adimda JWT kimlik dogrulama ve rol bazli endpoint iyilestirmeleri ile production seviyesine tasinabilir.</p>
+        <article class="faq-item">
+            <h3>Kiralanan ilanlarda ne değişir?</h3>
+            <p>İlan Kiralandı etiketi alır, yeni teklif veya kiralama talebi gönderilemez. Kiralayan kullanıcı ilanı Kiraladıklarım sayfasında görür ve yorum/puanlama yapabilir.</p>
+        </article>
+
+        <article class="faq-item">
+            <h3>Admin önerisi ve günün tavsiyesi nedir?</h3>
+            <p>Admin önerisi platform ekibinin öne çıkardığı ilan etiketidir. Günün tavsiyesi ise ana liste alanında sınırlı sayıda gösterilen seçili ilanlardır. Bu iki etiket birbirinden bağımsızdır.</p>
+        </article>
+
+        <article class="faq-item">
+            <h3>Güvenli kullanım notları</h3>
+            <p>İlan bilgilerini eksiksiz girin, gerçek fotoğraf kullanın, ödeme veya kapora gibi konuları platform dışına taşımadan önce satıcıyla yazılı olarak netleştirin. Şüpheli ilan veya kullanıcı için iletişim sayfasından destek isteyin.</p>
+        </article>
+
+        <article class="faq-item">
+            <h3>Destek</h3>
+            <p>İlan öne çıkarma, hesap, teklif veya mesajlaşma konularında destek için iletişim sayfasını kullanabilirsiniz. E-posta: aksoycemilefe@gmail.com, telefon: +90 533 978 49 07.</p>
+        </article>
     </div>
 </section>

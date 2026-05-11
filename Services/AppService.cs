@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Evimsensin.Data;
@@ -14,24 +14,24 @@ public class AppService
 
     private static readonly Dictionary<string, List<string>> _locations = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
     {
-        ["Istanbul"] = new List<string> { "Besiktas", "Kadikoy", "Sisli", "Uskudar", "Bakirkoy", "Beylikduzu", "Sariyer", "Atasehir" },
+        ["Istanbul"] = new List<string> { "Besiktas", "Kadikoy", "Sisli", "Uskudar", "Bakirkoy", "Beylikduzu", "Sariyer", "AtaÅŸehir" },
         ["Ankara"] = new List<string> { "Cankaya", "Yenimahalle", "Kecioren", "Etimesgut", "Mamak", "Golbasi", "Pursaklar" },
         ["Izmir"] = new List<string> { "Karsiyaka", "Bornova", "Konak", "Buca", "Balcova", "Bayrakli", "Guzelbahce" },
         ["Bursa"] = new List<string> { "Nilufer", "Osmangazi", "Yildirim", "Mudanya", "Gursu", "Inegol" },
         ["Antalya"] = new List<string> { "Muratpasa", "Konyaalti", "Kepez", "Lara", "Dosemealti", "Alanya" },
-        ["Adana"] = new List<string> { "Cukurova", "Seyhan", "Yuregir", "Sariçam", "Karatas" },
-        ["Konya"] = new List<string> { "Selcuklu", "Meram", "Karatay", "Eregli", "Beysehir" },
+        ["Adana"] = new List<string> { "Cukurova", "Seyhan", "Yuregir", "SariÃ§am", "Karatas" },
+        ["Konya"] = new List<string> { "Selcuklu", "Meram", "Karatay", "Eregli", "BeyÅŸehir" },
         ["Gaziantep"] = new List<string> { "Sahinbey", "Sehitkamil", "Oguzeli", "Nizip", "Islahiye" },
         ["Kocaeli"] = new List<string> { "Izmit", "Gebze", "Basiskele", "Derince", "Golcuk" },
-        ["Mersin"] = new List<string> { "Mezitli", "Yenisehir", "Toroslar", "Tarsus", "Erdemli" },
+        ["Mersin"] = new List<string> { "Mezitli", "YeniÅŸehir", "Toroslar", "Tarsus", "Erdemli" },
         ["Kayseri"] = new List<string> { "Melikgazi", "Kocasinan", "Talas", "Develi", "Yesilhisar" },
-        ["Eskisehir"] = new List<string> { "Tepebasi", "Odunpazari", "Sivrihisar", "Inonu" },
-        ["Samsun"] = new List<string> { "Atakum", "Ilkadim", "Canik", "Bafra", "Carsamba" },
+        ["EskiÅŸehir"] = new List<string> { "Tepebasi", "Odunpazari", "Sivrihisar", "Inonu" },
+        ["Samsun"] = new List<string> { "Atakum", "Ä°lkadim", "Canik", "Bafra", "Carsamba" },
         ["Trabzon"] = new List<string> { "Ortahisar", "Yomra", "Akcaabat", "Arsin", "Vakfikebir" },
-        ["Diyarbakir"] = new List<string> { "Baglar", "Kayapinar", "Yenisehir", "Sur", "Bismil" },
-        ["Sanliurfa"] = new List<string> { "Haliliye", "Eyyubiye", "Karakopru", "Siverek", "Viransehir" },
+        ["Diyarbakir"] = new List<string> { "Baglar", "Kayapinar", "YeniÅŸehir", "Sur", "Bismil" },
+        ["Sanliurfa"] = new List<string> { "Haliliye", "Eyyubiye", "Karakopru", "Siverek", "ViranÅŸehir" },
         ["Erzurum"] = new List<string> { "Yakutiye", "Palandoken", "Aziziye", "Horasan", "Oltu" },
-        ["Malatya"] = new List<string> { "Battalgazi", "Yesilyurt", "Akcadag", "Darende", "Dogansehir" },
+        ["Malatya"] = new List<string> { "Battalgazi", "Yesilyurt", "Akcadag", "Darende", "DoganÅŸehir" },
         ["Manisa"] = new List<string> { "Sehzadeler", "Yunusemre", "Turgutlu", "Salihli", "Akhisar" },
         ["Balikesir"] = new List<string> { "Ayvalik", "Edremit", "Bandirma", "Karesi", "Altieylul" },
         ["Aydin"] = new List<string> { "Efeler", "Kusadasi", "Didim", "Nazilli", "Soke" },
@@ -104,14 +104,14 @@ public class AppService
     private void EnsureSchemaUpgrades()
     {
         // Lightweight compatibility upgrade for existing SQLite files without migrations.
-        TryExec("ALTER TABLE Messages ADD COLUMN ImageUrl TEXT NOT NULL DEFAULT '';");
-        TryExec("ALTER TABLE Messages ADD COLUMN IsDeleted INTEGER NOT NULL DEFAULT 0;");
-        TryExec("ALTER TABLE Messages ADD COLUMN IsEdited INTEGER NOT NULL DEFAULT 0;");
-        TryExec("ALTER TABLE Messages ADD COLUMN EditedAt TEXT NULL;");
-        TryExec("ALTER TABLE Listings ADD COLUMN ImageGalleryJson TEXT NOT NULL DEFAULT '[]';");
-        TryExec("ALTER TABLE Users ADD COLUMN PhoneNumber TEXT NOT NULL DEFAULT '';");
-        TryExec("ALTER TABLE Listings ADD COLUMN ListingPurpose TEXT NOT NULL DEFAULT 'Kiralik';");
-        TryExec("ALTER TABLE Listings ADD COLUMN IsDailyRecommended INTEGER NOT NULL DEFAULT 0;");
+        AddColumnIfMissing("Messages", "ImageUrl", "TEXT NOT NULL DEFAULT ''");
+        AddColumnIfMissing("Messages", "IsDeleted", "INTEGER NOT NULL DEFAULT 0");
+        AddColumnIfMissing("Messages", "IsEdited", "INTEGER NOT NULL DEFAULT 0");
+        AddColumnIfMissing("Messages", "EditedAt", "TEXT NULL");
+        AddColumnIfMissing("Listings", "ImageGalleryJson", "TEXT NOT NULL DEFAULT '[]'");
+        AddColumnIfMissing("Users", "PhoneNumber", "TEXT NOT NULL DEFAULT ''");
+        AddColumnIfMissing("Listings", "ListingPurpose", "TEXT NOT NULL DEFAULT 'KiralÄ±k'");
+        AddColumnIfMissing("Listings", "IsDailyRecommended", "INTEGER NOT NULL DEFAULT 0");
         TryExec("""
             CREATE TABLE IF NOT EXISTS Ratings (
                 Id INTEGER NOT NULL CONSTRAINT PK_Ratings PRIMARY KEY AUTOINCREMENT,
@@ -125,6 +125,50 @@ public class AppService
             );
             """);
         TryExec("CREATE UNIQUE INDEX IF NOT EXISTS IX_Ratings_Listing_Renter ON Ratings(ListingId, RenterUserId);");
+    }
+
+    private void AddColumnIfMissing(string tableName, string columnName, string columnDefinition)
+    {
+        if (ColumnExists(tableName, columnName))
+        {
+            return;
+        }
+
+        TryExec($"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnDefinition};");
+    }
+
+    private bool ColumnExists(string tableName, string columnName)
+    {
+        var connection = _db.Database.GetDbConnection();
+        var shouldClose = connection.State == System.Data.ConnectionState.Closed;
+
+        if (shouldClose)
+        {
+            connection.Open();
+        }
+
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"PRAGMA table_info({tableName});";
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+        }
     }
 
     private void TryExec(string sql)
@@ -150,17 +194,17 @@ public class AppService
             "/img/seed-10.jpeg");
 
         var sellerA = EnsureSeedUser(
-            "Demo Satici",
-            "musteri@Evimsensin.com",
-            "Musteri123!",
+            "Demo SatÄ±cÄ±",
+            "mÃ¼ÅŸteri@Evimsensin.com",
+            "MÃ¼ÅŸteri123!",
             UserRole.Customer,
             "Bosphorus bolgesinde premium kiralik portfoy yonetiyorum.",
             "/img/seed-8.jpeg");
 
         var sellerB = EnsureSeedUser(
-            "Satici Elif",
+            "SatÄ±cÄ± Elif",
             "elif@Evimsensin.com",
-            "Satici123!",
+            "SatÄ±cÄ±123!",
             UserRole.Customer,
             "Modern residence ve deniz manzarali ilanlar.",
             "/img/seed-9.jpeg");
@@ -210,13 +254,13 @@ public class AppService
 
         var propertyTypes = new[] { "Daire", "Villa", "Rezidans", "Mustakil Ev", "Dublex" };
         var roomOptions = new[] { "1+1", "2+1", "3+1", "4+1", "5+1" };
-        var heatOptions = new[] { "Kombi Dogalgaz", "Merkezi", "Yerden Isitma", "Klima", "Isi Pompasi" };
+        var heatOptions = new[] { "Kombi Dogalgaz", "Merkezi", "Yerden IsÄ±tma", "Klima", "IsÄ± PompasÄ±" };
         var descriptionTemplates = new[]
         {
             "Sessiz sokakta, gun boyu isik alan planli bir yasam alani sunar.",
             "Toplu ulasima yurume mesafesinde, yeni mutfak ve yenilenmis banyoya sahip.",
             "Site icerisinde guvenlikli giris, sosyal alan ve cocuk parki avantajlari sunar.",
-            "Geniş salonu, kullanisli odalari ve ferah balkonu ile aile yasamina uygundur.",
+            "GeniÅŸ salonu, kullanisli odalari ve ferah balkonu ile aile yasamina uygundur.",
             "Market, okul ve hastane aksina yakin konumda konforlu bir kiralik secenektir.",
             "Modern cepheli binada, yuksek kira potansiyelli merkezi bir konumda yer alir.",
             "Acik otopark, asansor ve aidat dengesine sahip duzenli bir site dairesidir.",
@@ -273,7 +317,7 @@ public class AppService
                     District = district,
                     City = BuildCity(city.Key, district),
                     PropertyType = type,
-                    ListingPurpose = listingIndex % 3 == 0 ? "Satilik" : "Kiralik",
+                    ListingPurpose = listingIndex % 3 == 0 ? "SatÄ±lÄ±k" : "KiralÄ±k",
                     RoomCount = room,
                     GrossSquareMeters = gross,
                     NetSquareMeters = net,
@@ -512,6 +556,30 @@ public class AppService
     public List<Listing> GetListingsByOwner(int ownerUserId)
         => _db.Listings.Where(x => x.OwnerUserId == ownerUserId).OrderByDescending(x => x.CreatedAt).ToList();
 
+    public List<Listing> GetListingsRentedByUser(int renterUserId)
+    {
+        var listingIds = _db.Rentals
+            .Where(x => x.RenterUserId == renterUserId)
+            .OrderByDescending(x => x.RentedAt)
+            .Select(x => x.ListingId)
+            .ToList();
+
+        if (listingIds.Count == 0)
+        {
+            return new List<Listing>();
+        }
+
+        var order = listingIds
+            .Select((id, index) => new { id, index })
+            .ToDictionary(x => x.id, x => x.index);
+
+        return _db.Listings
+            .Where(x => listingIds.Contains(x.Id))
+            .AsEnumerable()
+            .OrderBy(x => order.TryGetValue(x.Id, out var index) ? index : int.MaxValue)
+            .ToList();
+    }
+
     public List<Comment> GetCommentsByListing(int listingId)
         => _db.Comments.Where(x => x.ListingId == listingId).OrderByDescending(x => x.CreatedAt).ToList();
 
@@ -528,7 +596,7 @@ public class AppService
 
     public void UpdateListing(Listing listing)
     {
-        var existing = GetListing(listing.Id) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        var existing = GetListing(listing.Id) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
         existing.Title = listing.Title;
         existing.Description = listing.Description;
         existing.Province = listing.Province;
@@ -599,7 +667,7 @@ public class AppService
 
     public bool ToggleAdminRecommendation(int listingId)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
         listing.IsAdminRecommended = !listing.IsAdminRecommended;
         _db.SaveChanges();
         return listing.IsAdminRecommended;
@@ -607,7 +675,7 @@ public class AppService
 
     public bool ToggleDailyRecommendation(int listingId, int maxCount = 4)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
         if (listing.IsDailyRecommended)
         {
             listing.IsDailyRecommended = false;
@@ -618,7 +686,7 @@ public class AppService
         var selectedCount = _db.Listings.Count(x => x.IsDailyRecommended);
         if (selectedCount >= maxCount)
         {
-            throw new InvalidOperationException($"Gunun tavsiye edilen evleri en fazla {maxCount} ilan olabilir.");
+            throw new InvalidOperationException($"GÃ¼nÃ¼n tavsiye edilen evleri en fazla {maxCount} ilan olabilir.");
         }
 
         listing.IsDailyRecommended = true;
@@ -668,11 +736,11 @@ public class AppService
 
     public Rental Rent(int listingId, int renterId, string cardLast4, int? approvedOfferId = null)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
 
         if (listing.OwnerUserId == renterId)
         {
-            throw new InvalidOperationException("Satici kendi ilanini kiralayamaz.");
+            throw new InvalidOperationException("SatÄ±cÄ± kendi ilanini kiralayamaz.");
         }
 
         if (listing.IsRented)
@@ -698,7 +766,7 @@ public class AppService
 
     public Offer CreateOffer(int listingId, int fromUserId, decimal amount, string note)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
 
         if (listing.OwnerUserId == fromUserId)
         {
@@ -729,11 +797,11 @@ public class AppService
 
     public Offer CreateRentalRequest(int listingId, int fromUserId, string cardLast4)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
 
         if (listing.OwnerUserId == fromUserId)
         {
-            throw new InvalidOperationException("Satici kendi ilanini kiralayamaz.");
+            throw new InvalidOperationException("SatÄ±cÄ± kendi ilanini kiralayamaz.");
         }
 
         if (listing.IsRented)
@@ -781,6 +849,7 @@ public class AppService
             .Select(o => new OfferDisplayViewModel
             {
                 OfferId = o.Id,
+                ListingId = o.ListingId,
                 ListingTitle = listing.Title,
                 FromUserName = _db.Users.Where(u => u.Id == o.FromUserId).Select(u => u.FullName).FirstOrDefault() ?? "Bilinmeyen",
                 Amount = o.Amount,
@@ -800,7 +869,8 @@ public class AppService
             .Select(o => new OfferDisplayViewModel
             {
                 OfferId = o.Id,
-                ListingTitle = _db.Listings.Where(l => l.Id == o.ListingId).Select(l => l.Title).FirstOrDefault() ?? "Ilan",
+                ListingId = o.ListingId,
+                ListingTitle = _db.Listings.Where(l => l.Id == o.ListingId).Select(l => l.Title).FirstOrDefault() ?? "Ä°lan",
                 FromUserName = _db.Users.Where(u => u.Id == o.FromUserId).Select(u => u.FullName).FirstOrDefault() ?? "Bilinmeyen",
                 Amount = o.Amount,
                 Note = o.Note,
@@ -822,11 +892,6 @@ public class AppService
 
         if (status == OfferStatus.Accepted && offer.Type == OfferType.RentalRequest)
         {
-            if (string.IsNullOrWhiteSpace(offer.PaymentCardLast4))
-            {
-                throw new InvalidOperationException("Kiralama talebinde kart bilgisi bulunamadi.");
-            }
-
             Rent(offer.ListingId, offer.FromUserId, offer.PaymentCardLast4, offer.Id);
 
             var others = _db.Offers.Where(x =>
@@ -860,7 +925,7 @@ public class AppService
 
     public void UpsertRating(int listingId, int renterUserId, int listingScore, int sellerScore, string comment)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
         if (!CanUserRateListing(listingId, renterUserId))
         {
             throw new InvalidOperationException("Puanlama icin ilani kiralamis olmaniz gerekir.");
@@ -909,6 +974,22 @@ public class AppService
         var list = _db.Ratings.Where(x => x.SellerUserId == sellerUserId).ToList();
         if (list.Count == 0) return (0, 0);
         return (Math.Round(list.Average(x => x.SellerScore), 1), list.Count);
+    }
+
+    public List<RatingDisplayViewModel> GetRatingsForListing(int listingId)
+    {
+        return _db.Ratings
+            .Where(x => x.ListingId == listingId)
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new RatingDisplayViewModel
+            {
+                RenterName = _db.Users.Where(u => u.Id == x.RenterUserId).Select(u => u.FullName).FirstOrDefault() ?? "Kullanici",
+                ListingScore = x.ListingScore,
+                SellerScore = x.SellerScore,
+                Comment = x.Comment,
+                CreatedAt = x.CreatedAt
+            })
+            .ToList();
     }
 
     public SellerDashboardViewModel GetSellerDashboard(int ownerUserId)

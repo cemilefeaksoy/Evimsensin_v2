@@ -1,10 +1,18 @@
 using Evimsensin.Data;
 using Evimsensin.Services;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 builder.Services.AddControllersWithViews();
+builder.Services
+    .AddDataProtection()
+    .SetApplicationName("Evimsensin")
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, ".aspnet-data-protection-keys")));
 builder.Services.AddSession();
 var dbPath = Path.Combine(builder.Environment.ContentRootPath, "evimsensin.db");
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -33,6 +41,9 @@ app.UseSession();
 
 app.Use(async (context, next) =>
 {
+    using var scope = context.RequestServices.CreateScope();
+    var appService = scope.ServiceProvider.GetRequiredService<AppService>();
+
     var hasRemember = context.Request.Cookies.TryGetValue("EvimsensinRemember", out var rememberedEmail) ||
                       context.Request.Cookies.TryGetValue("EvimsensinRemember", out rememberedEmail);
 
@@ -40,14 +51,27 @@ app.Use(async (context, next) =>
         hasRemember &&
         !string.IsNullOrWhiteSpace(rememberedEmail))
     {
-        using var scope = context.RequestServices.CreateScope();
-        var appService = scope.ServiceProvider.GetRequiredService<AppService>();
         var user = appService.GetUserByEmail(rememberedEmail);
         if (user is not null)
         {
             context.Session.SetInt32("UserId", user.Id);
             context.Session.SetString("UserName", user.FullName);
             context.Session.SetString("Role", user.Role.ToString());
+        }
+    }
+
+    var currentUserId = context.Session.GetInt32("UserId");
+    if (currentUserId.HasValue)
+    {
+        var currentUser = appService.GetUser(currentUserId.Value);
+        if (currentUser is null)
+        {
+            context.Session.Clear();
+        }
+        else
+        {
+            context.Session.SetString("UserName", currentUser.FullName);
+            context.Session.SetString("Role", currentUser.Role.ToString());
         }
     }
 

@@ -11,6 +11,7 @@ public class ListingDetailsViewModel
     public User? OwnerUser { get; set; }
     public List<Comment> Comments { get; set; } = new List<Comment>();
     public List<OfferDisplayViewModel> Offers { get; set; } = new List<OfferDisplayViewModel>();
+    public List<RatingDisplayViewModel> Ratings { get; set; } = new List<RatingDisplayViewModel>();
 
     public bool CanEdit { get; set; }
     public bool IsAdmin { get; set; }
@@ -93,6 +94,7 @@ public class ListingEditViewModel
     public decimal Dues { get; set; }
 
     public string ImageUrl { get; set; } = string.Empty;
+    public string CoverImageUrl { get; set; } = string.Empty;
     public IFormFile? ImageFile { get; set; }
     public List<IFormFile> ImageFiles { get; set; } = new List<IFormFile>();
     public string AdditionalImageUrls { get; set; } = string.Empty;
@@ -131,12 +133,22 @@ public class RatingCreateViewModel
 public class OfferDisplayViewModel
 {
     public int OfferId { get; set; }
+    public int ListingId { get; set; }
     public string ListingTitle { get; set; } = string.Empty;
     public string FromUserName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string Note { get; set; } = string.Empty;
     public OfferType Type { get; set; }
     public OfferStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class RatingDisplayViewModel
+{
+    public string RenterName { get; set; } = string.Empty;
+    public int ListingScore { get; set; }
+    public int SellerScore { get; set; }
+    public string Comment { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }
 

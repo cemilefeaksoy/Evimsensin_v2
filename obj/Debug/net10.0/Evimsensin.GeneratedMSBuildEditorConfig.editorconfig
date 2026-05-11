@@ -19,117 +19,117 @@ build_property.TargetFrameworkIdentifier = .NETCoreApp
 build_property.TargetFrameworkVersion = v10.0
 build_property.RootNamespace = Evimsensin
 build_property.RootNamespace = Evimsensin
-build_property.ProjectDir = /home/ogrenci/Masaüstü/Evimsensin/Evimsensin/
+build_property.ProjectDir = C:\Users\Gaming\Desktop\Evimsensin\Evimsensin_v2\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = /home/ogrenci/Masaüstü/Evimsensin/Evimsensin
+build_property.MSBuildProjectDirectory = C:\Users\Gaming\Desktop\Evimsensin\Evimsensin_v2
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Account/Login.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Mb2dpbi5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Account/Register.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9SZWdpc3Rlci5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Account/Register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Admin/Dashboard.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vRGFzaGJvYXJkLmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Admin/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Admin/EditUser.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vRWRpdFVzZXIuY3NodG1s
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Admin/EditUser.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRWRpdFVzZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Home/About.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9BYm91dC5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Home/About.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBYm91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Home/Contact.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Db250YWN0LmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Home/Contact.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb250YWN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Home/Faq.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9GYXEuY3NodG1s
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Home/Faq.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxGYXEuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Home/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleC5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Home/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Home/Privacy.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Home/Privacy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Listings/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlzdGluZ3MvQ3JlYXRlLmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Listings/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGlzdGluZ3NcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Listings/Details.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlzdGluZ3MvRGV0YWlscy5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Listings/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGlzdGluZ3NcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Listings/Edit.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlzdGluZ3MvRWRpdC5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Listings/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGlzdGluZ3NcRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Listings/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlzdGluZ3MvSW5kZXguY3NodG1s
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Listings/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGlzdGluZ3NcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Listings/_ListingForm.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlzdGluZ3MvX0xpc3RpbmdGb3JtLmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Listings/_ListingForm.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGlzdGluZ3NcX0xpc3RpbmdGb3JtLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Messages/Chat.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTWVzc2FnZXMvQ2hhdC5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Messages/Chat.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVzc2FnZXNcQ2hhdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Messages/Inbox.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTWVzc2FnZXMvSW5ib3guY3NodG1s
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Messages/Inbox.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVzc2FnZXNcSW5ib3guY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Profiles/Me.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvZmlsZXMvTWUuY3NodG1s
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Profiles/Me.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZmlsZXNcTWUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Profiles/Seller.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvZmlsZXMvU2VsbGVyLmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Profiles/Seller.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZmlsZXNcU2VsbGVyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Rentals/Payment.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVudGFscy9QYXltZW50LmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Rentals/Payment.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVudGFsc1xQYXltZW50LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Seller/Dashboard.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2VsbGVyL0Rhc2hib2FyZC5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Seller/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VsbGVyXERhc2hib2FyZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Seller/Offers.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2VsbGVyL09mZmVycy5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Seller/Offers.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2VsbGVyXE9mZmVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Shared/Error.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL0Vycm9yLmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Shared/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Shared/_ValidationScriptsPartial.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/_ViewImports.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/_ViewStart.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdTdGFydC5jc2h0bWw=
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/home/ogrenci/Masaüstü/Evimsensin/Evimsensin/Views/Shared/_Layout.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19MYXlvdXQuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = b-vnqd0nbbjl
+[C:/Users/Gaming/Desktop/Evimsensin/Evimsensin_v2/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-4ttrq9lpw7

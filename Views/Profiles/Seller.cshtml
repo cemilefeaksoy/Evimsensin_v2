@@ -1,7 +1,7 @@
 @using Microsoft.AspNetCore.Http
 @using Evimsensin.Models
 @{
-    ViewData["Title"] = "Kullanici Profili";
+    ViewData["Title"] = "Kullanıcı Profili";
     var user = ViewBag.User as User;
     var listings = ViewBag.Listings as List<Listing> ?? new List<Listing>();
     var currentUserId = Context.Session.GetInt32("UserId");
@@ -15,7 +15,7 @@
 
 @if (user is null)
 {
-    <section class="panel"><p>Profil bulunamadi.</p></section>
+    <section class="panel"><p>Profil bulunamadı.</p></section>
 }
 else
 {
@@ -28,37 +28,53 @@ else
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
                     @if (isAdmin)
                     {
-                        <span class="profile-admin-badge">⚡ ADMİN</span>
+                        <span class="profile-admin-badge">Admin</span>
                     }
                     else if (user.IsSellerApproved)
                     {
-                        <span class="profile-seller-badge">✓ Onayli Satici</span>
+                        <span class="profile-seller-badge">Onaylı Satıcı</span>
                     }
                 </div>
                 <h1 class="profile-view-name">@user.FullName</h1>
-                <p class="profile-view-bio">@(string.IsNullOrWhiteSpace(user.Bio) ? "Bu kullanici henuz bir aciklama eklemedi." : user.Bio)</p>
+                <p class="profile-view-bio">@(string.IsNullOrWhiteSpace(user.Bio) ? "Bu kullanıcı henüz bir açıklama eklemedi." : user.Bio)</p>
 
                 @if (!isAdmin)
                 {
-                    <div class="profile-rating-row">
-                        <div class="rating-stars-lg">
-                            @for (var i = 1; i <= 5; i++)
+                    <div class="seller-contact-grid">
+                        <div class="seller-contact-card seller-rating-card">
+                            <span>Satıcı Puanı</span>
+                            <div class="rating-stars-lg">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    <span class="rating-star @(i <= sellerStars ? "filled" : "")">★</span>
+                                }
+                            </div>
+                            <strong>@sellerRatingAverage.ToString("0.0") <small>/ 5</small></strong>
+                            <em>@sellerRatingCount değerlendirme</em>
+                        </div>
+                        <div class="seller-contact-card">
+                            <span>Telefon</span>
+                            <strong>@(string.IsNullOrWhiteSpace(user.PhoneNumber) ? "-" : user.PhoneNumber)</strong>
+                            @if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
                             {
-                                <span class="rating-star @(i <= sellerStars ? "filled" : "")">★</span>
+                                <a href="tel:@user.PhoneNumber">Ara</a>
                             }
                         </div>
-                        <span class="rating-score">@sellerRatingAverage.ToString("0.0") <small>/ 5</small></span>
-                        <span class="rating-count">(@sellerRatingCount puan)</span>
+                        <div class="seller-contact-card">
+                            <span>E-posta</span>
+                            <strong>@user.Email</strong>
+                            <a href="mailto:@user.Email">Mail Gönder</a>
+                        </div>
                     </div>
 
                     <div class="profile-stats-row">
                         <div class="profile-stat">
                             <strong>@listings.Count</strong>
-                            <span>Toplam Ilan</span>
+                            <span>Toplam İlan</span>
                         </div>
                         <div class="profile-stat">
                             <strong>@listings.Count(l => l.IsRented)</strong>
-                            <span>Kiralandi</span>
+                            <span>Kiralandı</span>
                         </div>
                         <div class="profile-stat">
                             <strong>@listings.Count(l => !l.IsRented)</strong>
@@ -70,11 +86,15 @@ else
                 <div class="profile-view-actions" style="margin-top:20px;">
                     @if (canMessageSeller && !isAdmin)
                     {
-                        <a class="btn-lux btn-thin" asp-controller="Messages" asp-action="Chat" asp-route-withUserId="@user.Id">💬 Mesaj Gonder</a>
+                        <a class="btn-lux btn-thin" asp-controller="Messages" asp-action="Chat" asp-route-withUserId="@user.Id">Mesaj At</a>
+                    }
+                    @if (!isAdmin)
+                    {
+                        <a class="btn-chat" href="#sellerListings">İlanlarını Gör</a>
                     }
                     @if (currentUserId.HasValue && currentUserId.Value == user.Id)
                     {
-                        <a href="/Profiles/Me?edit=true" class="btn-chat">✏ Profili Duzenle</a>
+                        <a href="/Profiles/Me?edit=true" class="btn-chat">Profili Düzenle</a>
                     }
                 </div>
             </div>
@@ -83,9 +103,9 @@ else
 
     @if (!isAdmin && listings.Any())
     {
-        <section class="section-head slim reveal-on-scroll">
-            <h2>Saticinin Ilanlari</h2>
-            <p>@listings.Count aktif ve kiralanmis ilan</p>
+        <section id="sellerListings" class="section-head slim reveal-on-scroll">
+            <h2>Satıcının İlanları</h2>
+            <p>@listings.Count aktif ve kiralanmış ilan</p>
         </section>
 
         <section class="grid-cards">
@@ -96,15 +116,17 @@ else
                     <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
                     @if (item.IsRented)
                     {
-                        <span class="rented-overlay">KIRALANDI</span>
+                        <span class="rented-overlay">Kiralandı</span>
                     }
                     @if (item.IsAdminRecommended)
                     {
-                        <span class="admin-badge-overlay">★ Admin Oneri</span>
+                        <span class="admin-badge-overlay">★ Admin Önerisi</span>
                     }
                 </a>
                 <div>
-                    <h3>@item.Title</h3>
+                    <h3>
+                        <a class="listing-title-link" asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id">@item.Title</a>
+                    </h3>
                     <p>@item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL/ay</p>
                     @if (listingRatingMap.TryGetValue(item.Id, out var rating))
                     {

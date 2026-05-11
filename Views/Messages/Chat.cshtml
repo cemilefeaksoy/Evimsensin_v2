@@ -42,7 +42,7 @@
                     @if (mine && !msg.IsDeleted)
                     {
                         <div class="chat-actions">
-                            <button type="button" class="chat-action-btn edit" data-action="edit" data-id="@msg.Id">Duzenle</button>
+                            <button type="button" class="chat-action-btn edit" data-action="edit" data-id="@msg.Id">Düzenle</button>
                             <button type="button" class="chat-action-btn delete" data-action="delete" data-id="@msg.Id">Sil</button>
                         </div>
                     }
@@ -55,13 +55,13 @@
         @Html.AntiForgeryToken()
         <input type="hidden" name="withUserId" value="@ViewBag.WithUserId" />
         <div class="chat-upload-row">
-            <button type="button" class="chat-attach-btn" id="openAttachment" title="Gorsel ekle">Atac</button>
+            <button type="button" class="chat-attach-btn" id="openAttachment" title="Görsel ekle">Görsel Ekle</button>
             <input type="file" id="chatImageInput" name="imageFile" accept=".jpg,.jpeg,.png,.webp,.gif" class="chat-file-input" />
-            <span id="chatFileName" class="chat-file-name">Gorsel secilmedi</span>
+            <span id="chatFileName" class="chat-file-name">Görsel seçilmedi</span>
         </div>
-        <img id="chatUploadPreview" class="chat-upload-preview" alt="Yuklenen gorsel onizleme" />
-        <input name="content" id="chatContentInput" placeholder="Mesajinizi yazin..." autocomplete="off" maxlength="1000" />
-        <button type="submit" class="btn-glow">Gonder</button>
+        <img id="chatUploadPreview" class="chat-upload-preview" alt="Yüklenen görsel önizleme" />
+        <input name="content" id="chatContentInput" placeholder="Mesajınızı yazın..." autocomplete="off" maxlength="1000" />
+        <button type="submit" class="btn-glow">Gönder</button>
     </form>
 </section>
 
@@ -75,7 +75,12 @@
     const imageInput = document.getElementById('chatImageInput');
     const fileName = document.getElementById('chatFileName');
     const uploadPreview = document.getElementById('chatUploadPreview');
+    const form = document.getElementById('chatSendForm');
+    const input = document.getElementById('chatContentInput');
+    const submitBtn = form?.querySelector('button[type="submit"]');
     let signature = '';
+    let initialized = false;
+    let lastIncomingId = Math.max(0, ...Array.from(container.querySelectorAll('.chat-bubble.other')).map(x => Number(x.dataset.messageId || 0)));
 
     const escapeHtml = (value) => {
         const div = document.createElement('div');
@@ -85,6 +90,24 @@
 
     function isNearBottom(el) {
         return el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    }
+
+    function playMessageSound() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(740, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(980, ctx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.035, ctx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            setTimeout(() => { osc.stop(); ctx.close(); }, 220);
+        } catch {}
     }
 
     function buildMessageHtml(m) {
@@ -103,7 +126,7 @@
 
         const actionsHtml = m.canManage && !isDeleted
             ? `<div class="chat-actions">
-                    <button type="button" class="chat-action-btn edit" data-action="edit" data-id="${m.id}">Duzenle</button>
+                    <button type="button" class="chat-action-btn edit" data-action="edit" data-id="${m.id}">Düzenle</button>
                     <button type="button" class="chat-action-btn delete" data-action="delete" data-id="${m.id}">Sil</button>
                </div>`
             : '';
@@ -125,14 +148,78 @@
 
             const data = await res.json();
             const nextSignature = data.map(m => `${m.id}|${m.isDeleted ? 1 : 0}|${m.isEdited ? 1 : 0}|${m.content || ''}|${m.imageUrl || ''}`).join('~');
-            if (nextSignature === signature) return;
+            if (nextSignature === signature) {
+                initialized = true;
+                return;
+            }
             signature = nextSignature;
 
             container.innerHTML = data.map(buildMessageHtml).join('');
+            const latestIncoming = Math.max(0, ...data
+                .filter(m => Number(m.fromUserId) !== Number(currentUserId))
+                .map(m => Number(m.id || 0)));
+            if (initialized && latestIncoming > lastIncomingId) {
+                playMessageSound();
+            }
+            lastIncomingId = Math.max(lastIncomingId, latestIncoming);
+            initialized = true;
+
             if (shouldStickBottom) {
                 container.scrollTop = container.scrollHeight;
             }
         } catch {}
+    }
+
+    async function sendMessage(event) {
+        event.preventDefault();
+        if (!form) return;
+
+        const text = (input?.value || '').trim();
+        const hasFile = Boolean(imageInput?.files?.length);
+        if (!text && !hasFile) {
+            alert('Bos mesaj gonderilemez.');
+            return;
+        }
+
+        const formData = new FormData(form);
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Gönderiliyor...';
+        }
+
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'fetch'
+                }
+            });
+
+            const payload = await res.json().catch(() => null);
+            if (!res.ok || !payload?.ok) {
+                alert(payload?.error || 'Mesaj gonderilemedi.');
+                return;
+            }
+
+            form.reset();
+            if (fileName) fileName.textContent = 'Görsel seçilmedi';
+            if (uploadPreview) {
+                uploadPreview.removeAttribute('src');
+                uploadPreview.classList.remove('show');
+            }
+            if (input) input.focus();
+            await refreshConversation();
+            container.scrollTop = container.scrollHeight;
+        } catch {
+            alert('Mesaj gonderilemedi.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Gönder';
+            }
+        }
     }
 
     async function updateMessage(messageId, content) {
@@ -215,7 +302,7 @@
         imageInput.addEventListener('change', () => {
             const file = imageInput.files?.[0];
             if (!file) {
-                if (fileName) fileName.textContent = 'Gorsel secilmedi';
+                if (fileName) fileName.textContent = 'Görsel seçilmedi';
                 if (uploadPreview) {
                     uploadPreview.removeAttribute('src');
                     uploadPreview.classList.remove('show');
@@ -232,9 +319,10 @@
         });
     }
 
+    form?.addEventListener('submit', sendMessage);
     refreshConversation();
     container.scrollTop = container.scrollHeight;
-    setInterval(refreshConversation, 3000);
+    setInterval(refreshConversation, 1000);
 })();
 </script>
 }

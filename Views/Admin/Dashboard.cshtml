@@ -36,7 +36,7 @@
         <div class="adm-header-left">
             <div class="adm-breadcrumb">
                 <span class="adm-breadcrumb-root">Evimsensin</span>
-                <span class="adm-breadcrumb-sep">›</span>
+                <span class="adm-breadcrumb-sep">·</span>
                 <span class="adm-breadcrumb-page">Yönetim Paneli</span>
             </div>
             <h1 class="adm-title">Admin Paneli</h1>
@@ -212,33 +212,33 @@
                         </div>
                         <div class="adm-panel-body adm-qa-grid">
                             <a asp-controller="Listings" asp-action="Create" class="adm-qa-btn adm-qa-primary">
-                                <span class="adm-qa-icon">＋</span>
+                                <span class="adm-qa-icon">+</span>
                                 <span>Yeni İlan</span>
                             </a>
                             <a href="?tab=users" class="adm-qa-btn">
-                                <span class="adm-qa-icon">👥</span>
+                                <span class="adm-qa-icon">•</span>
                                 <span>Kullanıcılar</span>
                             </a>
                             <a href="?tab=listings&listingStatus=active" class="adm-qa-btn">
-                                <span class="adm-qa-icon">🏠</span>
+                                <span class="adm-qa-icon">•</span>
                                 <span>Aktif İlanlar</span>
                             </a>
                             <a href="?tab=listings&listingStatus=rented" class="adm-qa-btn">
-                                <span class="adm-qa-icon">🔑</span>
+                                <span class="adm-qa-icon">•</span>
                                 <span>Kiralananlar</span>
                             </a>
                             <a href="?tab=users&userSearch=" class="adm-qa-btn @(((int)(ViewBag.PendingSellers??0))>0?"adm-qa-warn":"")">
-                                <span class="adm-qa-icon">⚠️</span>
+                                <span class="adm-qa-icon">⚠</span>
                                 <span>@ViewBag.PendingSellers Onay Bekliyor</span>
                             </a>
                             <a asp-controller="Listings" asp-action="Index" class="adm-qa-btn">
-                                <span class="adm-qa-icon">🔍</span>
+                                <span class="adm-qa-icon">•</span>
                                 <span>Tüm İlanlar</span>
                             </a>
                         </div>
                     </div>
 
-                    @* Platform özeti *@
+                    @* Platform Özeti *@
                     <div class="adm-panel">
                         <div class="adm-panel-head">
                             <h2 class="adm-panel-title">Platform Özeti</h2>
@@ -412,6 +412,14 @@
                                                 <input type="hidden" name="id" value="@item.Id" />
                                                 <button type="submit" class="adm-action-btn @(item.IsDailyRecommended ? "adm-action-teal" : "")" title="@(item.IsDailyRecommended ? "Günlükten Kaldır" : "Günün Tavsiyesi")">☀</button>
                                             </form>
+                                            <form asp-controller="Listings" asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('@item.Title adlı ilanı silmek istediğinize emin misiniz?')">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="adm-action-btn adm-action-delete" title="Sil">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-3 6h12l-1 12H7L6 9Zm3 2v8h2v-8H9Zm4 0v8h2v-8h-2Z" />
+                                                    </svg>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -533,7 +541,9 @@
                                             <form asp-action="DeleteUser" method="post" style="display:inline;" onsubmit="return confirm('@u.FullName adlı kullanıcıyı silmek istediğinize emin misiniz?')">
                                                 <input type="hidden" name="id" value="@u.Id" />
                                                 <button type="submit" class="adm-action-btn adm-action-delete" title="Sil">
-                                                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-3 6h12l-1 12H7L6 9Zm3 2v8h2v-8H9Zm4 0v8h2v-8h-2Z" />
+                                                    </svg>
                                                 </button>
                                             </form>
                                         </div>
@@ -589,7 +599,7 @@
                                             <td>
                                                 <div class="adm-table-actions">
                                                     <a class="adm-action-btn adm-action-edit" asp-action="EditUser" asp-route-id="@u.Id">✎</a>
-                                                    <a class="adm-action-btn" asp-controller="Profiles" asp-action="Seller" asp-route-id="@u.Id">👤</a>
+                                                    <a class="adm-action-btn" asp-controller="Profiles" asp-action="Seller" asp-route-id="@u.Id">•</a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -620,7 +630,7 @@
                                             <td class="adm-muted">@item.OwnerName</td>
                                             <td>
                                                 <div class="adm-table-actions">
-                                                    <a class="adm-action-btn" asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id">👁</a>
+                                                    <a class="adm-action-btn" asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id">•</a>
                                                     <a class="adm-action-btn adm-action-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@item.Id">✎</a>
                                                 </div>
                                             </td>
@@ -634,7 +644,7 @@
                     @if (!searchUsers.Any() && !searchListings.Any())
                     {
                         <div class="adm-empty" style="margin-top:24px;">
-                            <div style="font-size:2.5rem;margin-bottom:10px;">🔍</div>
+                            <div style="font-size:2.5rem;margin-bottom:10px;">•</div>
                             <div>Aramanızla eşleşen sonuç bulunamadı.</div>
                         </div>
                     }
@@ -642,7 +652,7 @@
                 else
                 {
                     <div class="adm-search-hint">
-                        <div style="font-size:3rem;opacity:.4;">🔍</div>
+                        <div style="font-size:3rem;opacity:.4;">•</div>
                         <p>İlan başlığı, şehir, kullanıcı adı veya e-posta ile arama yapabilirsiniz.</p>
                     </div>
                 }

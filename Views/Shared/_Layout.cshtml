@@ -32,7 +32,7 @@
         <div class="header-left">
             <a asp-controller="Home" asp-action="Index" class="nav-link">ANASAYFA</a>
             <a asp-controller="Listings" asp-action="Index" class="nav-link">İLANLAR</a>
-            @if (isLoggedIn && !isAdmin)
+            @if (isLoggedIn)
             {
                 <a asp-controller="Listings" asp-action="MyListings" class="nav-link">İLANLARIM</a>
             }
@@ -54,6 +54,7 @@
 
             @if (isLoggedIn)
             {
+                <a asp-controller="Profiles" asp-action="Me" class="nav-link">PROFİLİM</a>
                 <a class="mini-link msg-top-link" asp-controller="Messages" asp-action="Inbox" title="Mesajlar">
                     Mesaj
                     <span id="msgUnreadBadge" class="msg-badge @(unreadCount > 0 ? "show" : "")">@unreadCount</span>
@@ -71,25 +72,20 @@
                         <span class="profile-caret">▾</span>
                     </button>
                     <div class="profile-panel" id="profileMenuPanel">
-                        <a asp-controller="Profiles" asp-action="Me">👤 Profilim</a>
-                        @if (!isAdmin)
-                        {
-                            <a asp-controller="Listings" asp-action="MyListings">📋 İlanlarım</a>
-                        }
+                        <a asp-controller="Profiles" asp-action="Me">Profilim</a>
+                        <a asp-controller="Listings" asp-action="MyListings">İlanlarım</a>
+                        <a asp-controller="Listings" asp-action="Rented">Kiraladığım İlanlar</a>
                         @if (canCreateListing)
                         {
                             <a asp-controller="Listings" asp-action="Create">+ İlan Ver</a>
                         }
-                        @if (!isAdmin)
-                        {
-                            <a asp-controller="Seller" asp-action="Dashboard">📊 Satıcı Paneli</a>
-                            <a asp-controller="Seller" asp-action="Offers">🤝 Tekliflerim</a>
-                        }
-                        <a asp-controller="Messages" asp-action="Inbox">💬 Mesaj Kutusu</a>
+                        <a asp-controller="Seller" asp-action="Dashboard">Satıcı Paneli</a>
+                        <a asp-controller="Seller" asp-action="Offers">Satıcı Teklifleri</a>
+                        <a asp-controller="Messages" asp-action="Inbox">Mesaj Kutusu</a>
                         @if (isAdmin)
                         {
-                            <a asp-controller="Admin" asp-action="Dashboard">⚡ Admin Paneli</a>
-                            <a href="/Admin/Dashboard?tab=users">👥 Kullanıcı Yönetimi</a>
+                            <a asp-controller="Admin" asp-action="Dashboard">Admin Paneli</a>
+                            <a href="/Admin/Dashboard?tab=users">Kullanıcı Yönetimi</a>
                         }
                         <a class="danger-link" asp-controller="Account" asp-action="Logout">Çıkış Yap</a>
                     </div>
@@ -113,12 +109,11 @@
                     <a asp-controller="Listings" asp-action="Create" class="dock-btn dock-primary">+ İlan Ver</a>
                 }
                 <a asp-controller="Listings" asp-action="Index" class="dock-btn">İlanlar</a>
-                @if (!isAdmin)
-                {
-                    <a asp-controller="Seller" asp-action="Dashboard" class="dock-btn">Panel</a>
-                    <a asp-controller="Seller" asp-action="Offers" class="dock-btn">Tekliflerim</a>
-                }
-                else
+                <a asp-controller="Listings" asp-action="MyListings" class="dock-btn">İlanlarım</a>
+                <a asp-controller="Listings" asp-action="Rented" class="dock-btn">Kiraladıklarım</a>
+                <a asp-controller="Seller" asp-action="Dashboard" class="dock-btn">Satıcı Paneli</a>
+                <a asp-controller="Seller" asp-action="Offers" class="dock-btn">Satıcı Teklifleri</a>
+                @if (isAdmin)
                 {
                     <a asp-controller="Admin" asp-action="Dashboard" class="dock-btn">Admin Panel</a>
                 }
@@ -144,8 +139,8 @@
             <div class="footer-links-col">
                 <div class="footer-col-title">İlanlar</div>
                 <a asp-controller="Listings" asp-action="Index">Tüm İlanlar</a>
-                <a asp-controller="Listings" asp-action="Index" asp-route-purpose="Kiralik">Kiralık</a>
-                <a asp-controller="Listings" asp-action="Index" asp-route-purpose="Satilik">Satılık</a>
+                <a asp-controller="Listings" asp-action="Index" asp-route-purpose="Kiralık">Kiralık</a>
+                <a asp-controller="Listings" asp-action="Index" asp-route-purpose="Satılık">Satılık</a>
                 @if (canCreateListing)
                 {
                     <a asp-controller="Listings" asp-action="Create">İlan Ver</a>
@@ -258,7 +253,7 @@
                     } catch {}
                 }
                 refreshUnreadBadge();
-                setInterval(refreshUnreadBadge, 4000);
+                setInterval(refreshUnreadBadge, 1500);
             })();
         </script>
     }

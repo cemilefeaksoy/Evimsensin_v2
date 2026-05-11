@@ -121,16 +121,21 @@
   function setupImagePreview() {
     const fileInput = document.querySelector('[data-image-upload]');
     const urlInput = document.querySelector('[data-image-url]');
+    const coverInput = document.querySelector('[data-cover-image-input]');
     const preview = document.getElementById('livePreviewImage');
     const uploadZone = document.querySelector('.upload-zone');
 
     if (!preview) return;
+    if (!preview.getAttribute('src')) {
+      preview.closest('.live-preview')?.classList.add('empty');
+    }
 
     if (urlInput) {
       urlInput.addEventListener('input', () => {
         const value = urlInput.value.trim();
         if (value.length > 4) {
           preview.src = value;
+          preview.closest('.live-preview')?.classList.remove('empty');
         }
       });
     }
@@ -142,9 +147,20 @@
 
         const objectUrl = URL.createObjectURL(file);
         preview.src = objectUrl;
+        preview.closest('.live-preview')?.classList.remove('empty');
         preview.onload = () => URL.revokeObjectURL(objectUrl);
       });
     }
+
+    document.querySelectorAll('[data-cover-choice]').forEach((choice) => {
+      choice.addEventListener('change', () => {
+        if (!choice.checked) return;
+        if (coverInput) coverInput.value = choice.value;
+        preview.src = choice.value;
+        document.querySelectorAll('.cover-choice').forEach((item) => item.classList.remove('selected'));
+        choice.closest('.cover-choice')?.classList.add('selected');
+      });
+    });
 
     if (!uploadZone || !fileInput) return;
 
@@ -179,6 +195,11 @@
 
     let submitted = false;
     form.addEventListener('submit', (e) => {
+      if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+        submitted = false;
+        return;
+      }
+
       if (submitted) {
         e.preventDefault();
         return;
@@ -334,6 +355,11 @@
     if (!canvas) return;
 
     const { ctx, width, height } = prepareCanvas(canvas);
+    if (!values.some((value) => Number(value) > 0)) {
+      values = [1, 0];
+      colors = ['rgba(120,210,222,0.42)', 'rgba(255,255,255,0.08)'];
+      labels = ['Veri bekleniyor', ''];
+    }
     const total = values.reduce((a, b) => a + b, 0) || 1;
     const cx = width * 0.28;
     const cy = height * 0.5;
@@ -379,6 +405,11 @@
     if (!canvas) return;
 
     const { ctx, width, height } = prepareCanvas(canvas);
+    if (!Array.isArray(labels) || !labels.length || !values.some((value) => Number(value) > 0)) {
+      labels = ['Veri yok'];
+      values = [1];
+      color = 'rgba(120,210,222,0.48)';
+    }
     const gap = 12;
     const top = 24;
     const bottom = 32;
@@ -406,7 +437,7 @@
       ctx.fillStyle = '#e6eefc';
       ctx.font = '700 11px Manrope';
       ctx.textAlign = 'center';
-      ctx.fillText(String(values[i]), x + barWidth / 2, y - 6);
+      ctx.fillText(labels.length === 1 && labels[0] === 'Veri yok' ? '-' : String(values[i]), x + barWidth / 2, y - 6);
 
       ctx.fillStyle = '#9fb0c8';
       ctx.font = '500 10px Manrope';
@@ -416,7 +447,7 @@
   }
 
   function setupDashboardCharts() {
-    const shell = document.querySelector('.dashboard-shell[data-dashboard-json]');
+    const shell = document.querySelector('.seller-dash-hero[data-dashboard-json], .dashboard-shell[data-dashboard-json]');
     if (!shell) return;
 
     let data;
@@ -491,6 +522,31 @@
     });
   }
 
+  function setupStarRatings() {
+    document.querySelectorAll('[data-star-group]').forEach((group) => {
+      const name = group.getAttribute('data-star-group');
+      const input = document.querySelector(`[data-star-value="${name}"]`);
+      const buttons = Array.from(group.querySelectorAll('[data-score]'));
+      if (!input || !buttons.length) return;
+
+      const paint = (score) => {
+        buttons.forEach((button) => {
+          button.classList.toggle('active', Number(button.getAttribute('data-score') || 0) <= score);
+        });
+      };
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const score = Number(button.getAttribute('data-score') || 5);
+          input.value = String(score);
+          paint(score);
+        });
+      });
+
+      paint(Number(input.value || 5));
+    });
+  }
+
   activateNav();
   setupRevealOnScroll();
   setupTiltCards();
@@ -505,6 +561,7 @@
   setupParallax();
   setupCounters();
   setupDashboardCharts();
+  setupStarRatings();
 
   body.classList.add('js-ready');
 })();

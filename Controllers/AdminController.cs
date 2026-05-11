@@ -183,7 +183,7 @@ public class AdminController : Controller
         if (user is null) return RedirectToAction(nameof(Dashboard));
 
         _appService.SetSellerApproval(id, !user.IsSellerApproved);
-        TempData["Success"] = user.IsSellerApproved ? "Satici onayi kaldirildi." : "Satici onayi verildi.";
+        TempData["Success"] = user.IsSellerApproved ? "Satıcı onayi kaldirildi." : "Satıcı onayi verildi.";
         return RedirectToAction(nameof(Dashboard), new { tab = "users" });
     }
 

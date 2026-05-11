@@ -1,8 +1,8 @@
 @model UserAdminEditViewModel
-@{ ViewData["Title"] = "Kullanici Duzenle"; }
+@{ ViewData["Title"] = "Kullanici Düzenle"; }
 
 <section class="form-shell reveal-on-scroll">
-    <h2>Kullanici Duzenle</h2>
+    <h2>Kullanici Düzenle</h2>
     <form method="post">
         <input asp-for="Id" type="hidden" />
 
@@ -17,12 +17,12 @@
         <label>Rol</label>
         <select asp-for="Role" asp-items="Html.GetEnumSelectList<UserRole>()"></select>
 
-        <label class="chk"><input asp-for="IsSellerApproved" type="checkbox" /> Satici Onayli</label>
+        <label class="chk"><input asp-for="IsSellerApproved" type="checkbox" /> Satıcı Onayli</label>
 
-        <label>Profil Aciklamasi</label>
+        <label>Profil Açıklamasi</label>
         <textarea asp-for="Bio"></textarea>
 
-        <label>Profil Fotograf URL</label>
+        <label>Profil Fotoğraf URL</label>
         <input asp-for="ProfileImageUrl" />
 
         <div class="actions actions-pro">

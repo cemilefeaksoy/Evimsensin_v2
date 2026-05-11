@@ -29,8 +29,8 @@
             </div>
             <select name="purpose" class="hero-search-select">
                 <option value="">Tüm Tipler</option>
-                <option value="Kiralik">Kiralık</option>
-                <option value="Satilik">Satılık</option>
+                <option value="Kiralık">Kiralık</option>
+                <option value="Satılık">Satılık</option>
             </select>
             <button type="submit" class="hero-search-btn">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
@@ -116,7 +116,9 @@
                             <span class="portfolio-type-tag">@item.RoomCount</span>
                             <span class="portfolio-type-tag">@item.NetSquareMeters m²</span>
                         </div>
-                        <h3 class="portfolio-card-title">@item.Title</h3>
+                        <h3 class="portfolio-card-title">
+                            <a class="listing-title-link" asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id">@item.Title</a>
+                        </h3>
                         <p class="portfolio-location">
                             <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M8 1a5 5 0 100 10A5 5 0 008 1zm0 9a4 4 0 110-8 4 4 0 010 8z"/><circle cx="8" cy="8" r="2"/></svg>
                             @item.Province / @item.District
@@ -144,22 +146,22 @@
 @* ═══ NEDEN EVİMSENSİN ════════════════════════════════════════════════════ *@
 <section class="why-grid reveal-on-scroll">
     <div class="why-card">
-        <div class="why-icon">🔐</div>
+        <div class="why-icon">✓</div>
         <h3>Güvenli İşlem</h3>
         <p>Teklif verme, kiralama, mesajlaşma ve yorum akışının tamamı tek güvenli platformda.</p>
     </div>
     <div class="why-card">
-        <div class="why-icon">🏆</div>
+        <div class="why-icon">★</div>
         <h3>Uzman Onaylı</h3>
         <p>Tüm ilanlar uzman ekibimiz tarafından incelenir; doğrulanmış satıcılar ile güvenle işlem yapın.</p>
     </div>
     <div class="why-card">
-        <div class="why-icon">📊</div>
+        <div class="why-icon">%</div>
         <h3>Satıcı Paneli</h3>
         <p>Hangi ilanın ne zaman kiralandığını, gelen teklifleri ve dönüşüm oranlarını anlık takip edin.</p>
     </div>
     <div class="why-card">
-        <div class="why-icon">💬</div>
+        <div class="why-icon">✉</div>
         <h3>Anlık Mesajlaşma</h3>
         <p>Satıcı ve alıcı arasında doğrudan, güvenli mesajlaşma sistemi ile hızlı iletişim kurun.</p>
     </div>

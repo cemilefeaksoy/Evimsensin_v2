@@ -43,7 +43,7 @@ public class ListingsController : Controller
         var locationMap = _appService.GetLocationMap();
         if (string.IsNullOrWhiteSpace(city))
         {
-            // Tum sehirler seciliyken ilce filtresi ilanlari gereksiz daraltmasin.
+            // Tüm şehirler seciliyken ilce filtresi ilanlari gereksiz daraltmasin.
             district = string.Empty;
         }
         else
@@ -95,6 +95,16 @@ public class ListingsController : Controller
         if (DateTime.TryParse(dateTo, out var dto))
             listings = listings.Where(x => x.CreatedAt.Date <= dto.Date).ToList();
 
+        var hasAnyFilter =
+            !string.IsNullOrWhiteSpace(city) ||
+            !string.IsNullOrWhiteSpace(district) ||
+            !string.IsNullOrWhiteSpace(purpose) ||
+            minPrice.HasValue ||
+            maxPrice.HasValue ||
+            detailed ||
+            !string.IsNullOrWhiteSpace(dateFrom) ||
+            !string.IsNullOrWhiteSpace(dateTo);
+
         listings = (sort ?? string.Empty).ToLowerInvariant() switch
         {
             "title_asc" => listings.OrderBy(x => x.Title).ToList(),
@@ -103,7 +113,9 @@ public class ListingsController : Controller
             "price_desc" => listings.OrderByDescending(x => x.MonthlyPrice).ToList(),
             "newest" => listings.OrderByDescending(x => x.CreatedAt).ToList(),
             "oldest" => listings.OrderBy(x => x.CreatedAt).ToList(),
-            _ => listings.OrderByDescending(x => x.CreatedAt).ToList()
+            _ => hasAnyFilter
+                ? listings.OrderByDescending(x => x.CreatedAt).ToList()
+                : listings.OrderBy(_ => Guid.NewGuid()).ToList()
         };
 
         ViewBag.FilterDateFrom = dateFrom;
@@ -132,6 +144,8 @@ public class ListingsController : Controller
         ViewBag.FilterMaxGross = maxGross;
         ViewBag.FilterSort = sort;
         ViewBag.DailyRecommended = GetDailyRecommendedListings();
+        ViewBag.ListingPageTitle = "İlan Ara & Filtrele";
+        ViewBag.ListingPageCountLabel = "ilan bulundu";
 
         return View(listings);
     }
@@ -189,7 +203,43 @@ public class ListingsController : Controller
             .OrderByDescending(x => x.CreatedAt)
             .ToList();
 
+        PrepareListingIndexViewData();
+        ViewBag.ListingPageTitle = "Kendi İlanlarım";
+        ViewBag.ListingPageCountLabel = "ilanınız";
+        ViewBag.IsMyListings = true;
+
         return View("Index", myListings);
+    }
+
+    [HttpGet]
+    public IActionResult Rented()
+    {
+        var userId = AuthSession.UserId(this);
+        if (!userId.HasValue) return RedirectToAction("Login", "Account");
+
+        var rentedListings = _appService.GetListingsRentedByUser(userId.Value);
+
+        PrepareListingIndexViewData();
+        ViewBag.ListingPageTitle = "Kiraladığım İlanlar";
+        ViewBag.ListingPageCountLabel = "kiraladığınız ilan";
+        ViewBag.IsRentedListings = true;
+
+        return View("Index", rentedListings);
+    }
+
+    private void PrepareListingIndexViewData()
+    {
+        var locationMap = _appService.GetLocationMap();
+        ViewBag.Cities = OrderCitiesForUi(locationMap.Keys);
+        ViewBag.Districts = locationMap.Values.SelectMany(x => x).Distinct().OrderBy(x => x).ToList();
+        ViewBag.LocationMapJson = JsonSerializer.Serialize(locationMap);
+
+        var all = _appService.GetListings();
+        ViewBag.Rooms = all.Select(x => x.RoomCount).Distinct().OrderBy(x => x).ToList();
+        ViewBag.Types = all.Select(x => x.PropertyType).Distinct().OrderBy(x => x).ToList();
+        ViewBag.FilterSort = string.Empty;
+        ViewBag.FilterDetailed = false;
+        ViewBag.DailyRecommended = new List<Listing>();
     }
 
     public IActionResult Details(int id)
@@ -221,6 +271,7 @@ public class ListingsController : Controller
             GalleryImages = gallery,
             OwnerUser = _appService.GetUser(listing.OwnerUserId),
             Comments = _appService.GetCommentsByListing(id),
+            Ratings = _appService.GetRatingsForListing(id),
             Offers = isOwner || isAdmin ? _appService.GetOffersForListing(id) : new List<OfferDisplayViewModel>(),
             IsAdmin = isAdmin,
             IsLoggedIn = isLoggedIn,
@@ -254,16 +305,18 @@ public class ListingsController : Controller
 
         if (userId.HasValue && !_appService.CanCreateListing(userId.Value))
         {
-            TempData["Error"] = "Ilan verebilmek icin admin satıcı onayi bekleniyor.";
+            TempData["Error"] = "İlan verebilmek icin admin satıcı onayi bekleniyor.";
             return RedirectToAction(nameof(Index));
         }
 
         SetLocationViewData();
         ViewBag.IsAdmin = AuthSession.IsAdmin(this);
-        SetSellerViewData();
+        SetOwnerViewData();
 
         return View(new ListingEditViewModel
         {
+            Title = "Yeni İlan",
+            Description = "İlan açıklaması daha sonra güncellenebilir.",
             Province = "Istanbul",
             District = "Besiktas",
             PropertyType = "Daire",
@@ -283,8 +336,8 @@ public class ListingsController : Controller
             Elevator = true,
             Parking = true,
             InSite = true,
-            ImageUrl = "/img/seed-1.jpeg",
-            OwnerUserId = AuthSession.IsAdmin(this) ? null : userId
+            ImageUrl = string.Empty,
+            OwnerUserId = userId
         });
     }
 
@@ -300,24 +353,20 @@ public class ListingsController : Controller
         }
         if (!_appService.CanCreateListing(userId.Value))
         {
-            TempData["Error"] = "Ilan verebilmek icin admin satıcı onayi bekleniyor.";
+            TempData["Error"] = "İlan verebilmek icin admin satıcı onayi bekleniyor.";
             return RedirectToAction(nameof(Index));
         }
 
         SetLocationViewData();
         ViewBag.IsAdmin = AuthSession.IsAdmin(this);
-        SetSellerViewData();
+        SetOwnerViewData();
 
         model.ImageUrl = model.ImageUrl?.Trim() ?? string.Empty;
         model.AdditionalImageUrls = model.AdditionalImageUrls?.Trim() ?? string.Empty;
         ApplyCreateDefaults(model);
 
-        var isAdminCreating = AuthSession.IsAdmin(this);
-        if (!isAdminCreating && !model.TermsAccepted)
-        {
-            ModelState.AddModelError(nameof(model.TermsAccepted), "Ilan vermek icin kesinti bilgilendirmesini onaylamalisiniz.");
-        }
-        if (isAdminCreating) model.TermsAccepted = true;
+        model.TermsAccepted = true;
+        ModelState.Clear();
 
         var gallery = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -330,37 +379,27 @@ public class ListingsController : Controller
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(model.ImageUrl))
-        {
-            if (!IsValidImageUrl(model.ImageUrl))
-            {
-                ModelState.AddModelError(nameof(model.ImageUrl), "URL /img ile baslamali veya http/https olmalidir.");
-            }
-            else
-            {
-                addImage(model.ImageUrl);
-            }
-        }
-
-        foreach (var url in ParseAdditionalImageUrls(model.AdditionalImageUrls))
-        {
-            if (!IsValidImageUrl(url))
-            {
-                ModelState.AddModelError(nameof(model.AdditionalImageUrls), $"Gecersiz gorsel URL: {url}");
-                continue;
-            }
-            addImage(url);
-        }
-
         if (model.ImageFile is not null && model.ImageFile.Length > 0)
         {
             if (!TrySaveImage(model.ImageFile, out var savedPath, out var error))
             {
-                ModelState.AddModelError(nameof(model.ImageFile), error ?? "Resim yuklenemedi.");
+                savedPath = null;
             }
             else if (!string.IsNullOrWhiteSpace(savedPath))
             {
                 addImage(savedPath);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.ImageUrl))
+        {
+            if (!IsValidImageUrl(model.ImageUrl))
+            {
+                model.ImageUrl = string.Empty;
+            }
+            else
+            {
+                addImage(model.ImageUrl);
             }
         }
 
@@ -370,7 +409,6 @@ public class ListingsController : Controller
             {
                 if (!TrySaveImage(file, out var savedPath, out var error))
                 {
-                    ModelState.AddModelError(nameof(model.ImageFiles), error ?? "Resim yuklenemedi.");
                     continue;
                 }
                 if (!string.IsNullOrWhiteSpace(savedPath))
@@ -380,9 +418,18 @@ public class ListingsController : Controller
             }
         }
 
+        foreach (var url in ParseAdditionalImageUrls(model.AdditionalImageUrls))
+        {
+            if (!IsValidImageUrl(url))
+            {
+                continue;
+            }
+            addImage(url);
+        }
+
         if (gallery.Count == 0)
         {
-            gallery.Add("/img/seed-1.jpeg");
+            ModelState.AddModelError(nameof(model.ImageFile), "Lütfen en az bir ilan fotoğrafı seçin veya geçerli bir fotoğraf URL'si girin.");
         }
 
         if (!ModelState.IsValid) return View(model);
@@ -395,14 +442,13 @@ public class ListingsController : Controller
         {
             if (!model.OwnerUserId.HasValue)
             {
-                ModelState.AddModelError(nameof(model.OwnerUserId), "Lutfen ilan sahibi satici secin.");
-                return View(model);
+                model.OwnerUserId = userId.Value;
             }
 
             var selectedOwner = _appService.GetUser(model.OwnerUserId.Value);
-            if (selectedOwner is null || selectedOwner.Role == UserRole.Admin)
+            if (selectedOwner is null)
             {
-                ModelState.AddModelError(nameof(model.OwnerUserId), "Ilan sahibi olarak yalnizca satici/musteri secilebilir.");
+                ModelState.AddModelError(nameof(model.OwnerUserId), "İlan sahibi bulunamadi.");
                 return View(model);
             }
 
@@ -412,11 +458,11 @@ public class ListingsController : Controller
         var ownerUser = _appService.GetUser(selectedOwnerId);
         if (ownerUser is null)
         {
-            ModelState.AddModelError(string.Empty, "Ilan sahibi bulunamadi.");
+            ModelState.AddModelError(string.Empty, "İlan sahibi bulunamadi.");
             return View(model);
         }
 
-        _appService.CreateListing(new Listing
+        var listing = _appService.CreateListing(new Listing
         {
             Title = model.Title,
             Description = model.Description,
@@ -448,8 +494,8 @@ public class ListingsController : Controller
             IsAdminRecommended = isAdmin && model.IsAdminRecommended
         });
 
-        TempData["Success"] = "Ilaniniz basariyla yayina alindi.";
-        return RedirectToAction(nameof(Index));
+        TempData["Success"] = "İlanınız başarıyla yayına alındı.";
+        return RedirectToAction(nameof(Details), new { id = listing.Id });
     }
 
     [HttpGet]
@@ -464,7 +510,7 @@ public class ListingsController : Controller
 
         SetLocationViewData();
         ViewBag.IsAdmin = isAdmin;
-        SetSellerViewData();
+        SetOwnerViewData();
 
         return View(new ListingEditViewModel
         {
@@ -493,6 +539,7 @@ public class ListingsController : Controller
             Deposit = listing.Deposit,
             Dues = listing.Dues,
             ImageUrl = listing.ImageUrl,
+            CoverImageUrl = listing.ImageUrl,
             OwnerUserId = listing.OwnerUserId,
             ExistingImagesCsv = string.Join(",", _appService.GetListingImageGallery(listing)),
             IsAdminRecommended = listing.IsAdminRecommended
@@ -511,7 +558,7 @@ public class ListingsController : Controller
 
         SetLocationViewData();
         ViewBag.IsAdmin = isAdmin;
-        SetSellerViewData();
+        SetOwnerViewData();
 
         model.ImageUrl = model.ImageUrl?.Trim() ?? string.Empty;
         model.AdditionalImageUrls = model.AdditionalImageUrls?.Trim() ?? string.Empty;
@@ -536,6 +583,8 @@ public class ListingsController : Controller
                 gallery.Add(normalized);
             }
         }
+
+        var requestedCover = (model.CoverImageUrl ?? string.Empty).Trim();
 
         if (!string.IsNullOrWhiteSpace(model.ImageUrl))
         {
@@ -568,6 +617,7 @@ public class ListingsController : Controller
             else if (!string.IsNullOrWhiteSpace(savedPath))
             {
                 addImage(savedPath);
+                requestedCover = savedPath;
             }
         }
 
@@ -590,6 +640,11 @@ public class ListingsController : Controller
         if (gallery.Count == 0)
         {
             ModelState.AddModelError(nameof(model.ImageFile), "En az bir ilan gorseli ekleyin.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(requestedCover) && gallery.Remove(requestedCover))
+        {
+            gallery.Insert(0, requestedCover);
         }
 
         model.ExistingImagesCsv = string.Join(",", gallery);
@@ -629,7 +684,7 @@ public class ListingsController : Controller
             IsAdminRecommended = isAdmin && model.IsAdminRecommended
         });
 
-        TempData["Success"] = "Ilan guncellendi.";
+        TempData["Success"] = "İlan guncellendi.";
         return RedirectToAction(nameof(Details), new { id = model.Id });
     }
 
@@ -643,7 +698,7 @@ public class ListingsController : Controller
         if (!(AuthSession.IsAdmin(this) || (userId.HasValue && userId.Value == listing.OwnerUserId))) return Forbid();
 
         _appService.DeleteListing(id);
-        TempData["Success"] = "Ilan silindi.";
+        TempData["Success"] = "İlan silindi.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -662,7 +717,7 @@ public class ListingsController : Controller
 
         if (!string.IsNullOrWhiteSpace(content))
         {
-            _appService.AddComment(listingId, AuthSession.UserName(this) ?? "Musteri", content.Trim());
+            _appService.AddComment(listingId, AuthSession.UserName(this) ?? "Müşteri", content.Trim());
         }
 
         return RedirectToAction(nameof(Details), new { id = listingId });
@@ -704,7 +759,7 @@ public class ListingsController : Controller
                     $"Yeni teklif geldi: {listing.Title} icin {model.Amount:N0} TL teklif verildi.");
             }
 
-            TempData["Success"] = "Teklifiniz saticiya iletildi.";
+            TempData["Success"] = "Teklifiniz satıcıya iletildi.";
         }
         catch (Exception ex)
         {
@@ -723,8 +778,8 @@ public class ListingsController : Controller
         {
             var value = _appService.ToggleAdminRecommendation(id);
             TempData["Success"] = value
-                ? "Ilan admin onerisi olarak isaretlendi."
-                : "Ilan admin onerisi isareti kaldirildi.";
+                ? "İlan admin önerisi olarak isaretlendi."
+                : "İlan admin önerisi isareti kaldirildi.";
         }
         catch (Exception ex)
         {
@@ -745,8 +800,8 @@ public class ListingsController : Controller
         {
             var value = _appService.ToggleDailyRecommendation(id, 4);
             TempData["Success"] = value
-                ? "Ilan gunun tavsiye edilen evlerine eklendi."
-                : "Ilan gunun tavsiye edilen evlerinden kaldirildi.";
+                ? "İlan gunun tavsiye edilen evlerine eklendi."
+                : "İlan gunun tavsiye edilen evlerinden kaldirildi.";
         }
         catch (Exception ex)
         {
@@ -804,13 +859,15 @@ public class ListingsController : Controller
         ViewBag.LocationMapJson = JsonSerializer.Serialize(map);
     }
 
-    private void SetSellerViewData()
+    private void SetOwnerViewData()
     {
-        ViewBag.Sellers = _appService.GetNonAdminUsers();
+        ViewBag.Sellers = _appService.GetUsers();
     }
 
     private void ApplyCreateDefaults(ListingEditViewModel model)
     {
+        model.Title = string.IsNullOrWhiteSpace(model.Title) ? "Yeni İlan" : model.Title.Trim();
+        model.Description = string.IsNullOrWhiteSpace(model.Description) ? "İlan açıklaması daha sonra güncellenebilir." : model.Description.Trim();
         model.Province = string.IsNullOrWhiteSpace(model.Province) ? "Istanbul" : model.Province.Trim();
         model.District = string.IsNullOrWhiteSpace(model.District) ? "Besiktas" : model.District.Trim();
         model.PropertyType = string.IsNullOrWhiteSpace(model.PropertyType) ? "Daire" : model.PropertyType.Trim();
@@ -826,6 +883,9 @@ public class ListingsController : Controller
         model.MonthlyPrice = model.MonthlyPrice < 1000 ? 25000 : model.MonthlyPrice;
         model.Deposit = model.Deposit < 0 ? 0 : model.Deposit;
         model.Dues = model.Dues < 0 ? 0 : model.Dues;
+        ModelState.Remove(nameof(ListingEditViewModel.Title));
+        ModelState.Remove(nameof(ListingEditViewModel.Description));
+        ModelState.Remove(nameof(ListingEditViewModel.TermsAccepted));
         ClearAdvancedValidation();
     }
 

@@ -28,11 +28,11 @@
                     <p class="profile-view-bio muted-italic">Henuz bir aciklama eklenmemis.</p>
                 }
                 <div class="profile-view-actions">
-                    <a href="?edit=true" class="btn-lux btn-thin">✏ Profili Duzenle</a>
-                    <a asp-controller="Listings" asp-action="MyListings" class="btn-chat">📋 Ilanlarim</a>
+                    <a href="?edit=true" class="btn-lux btn-thin">✏ Profili Düzenle</a>
+                    <a asp-controller="Listings" asp-action="MyListings" class="btn-chat">📋 İlanlarim</a>
                     @if (Context.Session.GetString("Role") != "Admin")
                     {
-                        <a asp-controller="Seller" asp-action="Dashboard" class="btn-edit">📊 Satici Paneli</a>
+                        <a asp-controller="Seller" asp-action="Dashboard" class="btn-edit">📊 Satıcı Paneli</a>
                     }
                 </div>
             </div>
@@ -43,7 +43,7 @@ else
 {
     <section class="create-shell reveal-on-scroll">
         <div class="create-hero-content">
-            <span class="studio-badge">Profil Duzenle</span>
+            <span class="studio-badge">Profil Düzenle</span>
             <h2 style="margin:10px 0 6px; font-family:'Cormorant Garamond',serif; font-size:2rem;">Profil Bilgilerini Guncelle</h2>
             <p class="studio-sub">Profil fotografi, isminiz ve aciklamanizi buradan duzenleyebilirsiniz.</p>
         </div>
@@ -59,7 +59,7 @@ else
                     <textarea asp-for="Bio" placeholder="Kendinizi kisaca anlatin..." rows="4"></textarea>
                     <span asp-validation-for="Bio" class="text-danger"></span>
 
-                    <label style="margin-top:12px;">Profil Fotograf URL</label>
+                    <label style="margin-top:12px;">Profil Fotoğraf URL</label>
                     <input asp-for="ProfileImageUrl" data-image-url placeholder="https://... veya dosya yukleyin" />
                     <span asp-validation-for="ProfileImageUrl" class="text-danger"></span>
                 </div>
@@ -68,14 +68,14 @@ else
                     <label class="upload-zone" for="ProfileImageFile">
                         <span class="upload-title">Profil Resmi Yukle</span>
                         <span class="upload-sub">JPG / PNG / WEBP, max 8MB</span>
-                        <span class="upload-pill">Dosya Sec</span>
+                        <span class="upload-pill">Dosya Seç</span>
                         <input asp-for="ProfileImageFile" id="ProfileImageFile" type="file" accept=".jpg,.jpeg,.png,.webp" data-image-upload />
                     </label>
                     <span asp-validation-for="ProfileImageFile" class="text-danger"></span>
 
                     <div class="live-preview">
-                        <p>Onizleme</p>
-                        <img id="livePreviewImage" src="@(string.IsNullOrWhiteSpace(Model.ProfileImageUrl) ? "/img/seed-8.jpeg" : Model.ProfileImageUrl)" alt="Profil Onizleme" />
+                        <p>Önizleme</p>
+                        <img id="livePreviewImage" src="@(string.IsNullOrWhiteSpace(Model.ProfileImageUrl) ? "/img/seed-8.jpeg" : Model.ProfileImageUrl)" alt="Profil Önizleme" />
                     </div>
                 </aside>
             </div>

@@ -57,8 +57,16 @@ public class MessagesController : Controller
     public IActionResult Send(int withUserId, string? content, IFormFile? imageFile)
     {
         var currentUserId = AuthSession.UserId(this);
-        if (!currentUserId.HasValue) return RedirectToAction("Login", "Account");
-        if (currentUserId.Value == withUserId) return RedirectToAction(nameof(Inbox));
+        if (!currentUserId.HasValue)
+        {
+            if (WantsJson()) return Unauthorized(new { ok = false, error = "Giris gerekli." });
+            return RedirectToAction("Login", "Account");
+        }
+        if (currentUserId.Value == withUserId)
+        {
+            if (WantsJson()) return BadRequest(new { ok = false, error = "Gecersiz alici." });
+            return RedirectToAction(nameof(Inbox));
+        }
 
         var normalizedContent = (content ?? string.Empty).Trim();
         string? imageUrl = null;
@@ -67,6 +75,7 @@ public class MessagesController : Controller
         {
             if (!TrySaveChatImage(imageFile, out imageUrl, out var uploadError))
             {
+                if (WantsJson()) return BadRequest(new { ok = false, error = uploadError });
                 TempData["Error"] = uploadError;
                 return RedirectToAction(nameof(Chat), new { withUserId });
             }
@@ -74,11 +83,21 @@ public class MessagesController : Controller
 
         if (string.IsNullOrWhiteSpace(normalizedContent) && string.IsNullOrWhiteSpace(imageUrl))
         {
+            if (WantsJson()) return BadRequest(new { ok = false, error = "Bos mesaj gonderilemez." });
             TempData["Error"] = "Bos mesaj gonderilemez.";
             return RedirectToAction(nameof(Chat), new { withUserId });
         }
 
-        _appService.SendMessage(currentUserId.Value, withUserId, normalizedContent, imageUrl);
+        var message = _appService.SendMessage(currentUserId.Value, withUserId, normalizedContent, imageUrl);
+        if (WantsJson())
+        {
+            return Json(new
+            {
+                ok = true,
+                message = ProjectMessage(message, currentUserId.Value)
+            });
+        }
+
         return RedirectToAction(nameof(Chat), new { withUserId });
     }
 
@@ -155,20 +174,28 @@ public class MessagesController : Controller
         _appService.MarkConversationAsRead(currentUserId.Value, withUserId);
 
         var messages = _appService.GetConversation(currentUserId.Value, withUserId)
-            .Select(m => new
-            {
-                id = m.Id,
-                fromUserId = m.FromUserId,
-                content = m.Content,
-                imageUrl = m.ImageUrl,
-                isDeleted = m.IsDeleted,
-                isEdited = m.IsEdited,
-                canManage = m.FromUserId == currentUserId.Value,
-                createdAt = m.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-            });
+            .Select(m => ProjectMessage(m, currentUserId.Value));
 
         return Json(messages);
     }
+
+    private static object ProjectMessage(Evimsensin.Models.Message m, int currentUserId)
+        => new
+        {
+            id = m.Id,
+            fromUserId = m.FromUserId,
+            content = m.Content,
+            imageUrl = m.ImageUrl,
+            isDeleted = m.IsDeleted,
+            isEdited = m.IsEdited,
+            canManage = m.FromUserId == currentUserId,
+            createdAt = m.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+        };
+
+    private bool WantsJson()
+        => Request.Headers.Accept.Any(x => x?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true)
+           || string.Equals(Request.Headers["X-Requested-With"], "fetch", StringComparison.OrdinalIgnoreCase)
+           || string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
 
     private bool TrySaveChatImage(IFormFile file, out string? path, out string? error)
     {

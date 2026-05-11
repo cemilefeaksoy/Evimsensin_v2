@@ -33,7 +33,7 @@ public class SellerController : Controller
     }
 
     [HttpPost]
-    public IActionResult UpdateOfferStatus(int offerId, OfferStatus status)
+    public IActionResult UpdateOfferStatus(int offerId, OfferStatus status, string? returnTo = null)
     {
         var userId = AuthSession.UserId(this);
         if (!userId.HasValue) return RedirectToAction("Login", "Account");
@@ -45,14 +45,14 @@ public class SellerController : Controller
 
             if (listing is not null)
             {
-                var statusText = status == OfferStatus.Accepted ? "KABUL" : "RED";
-                _appService.SendMessage(userId.Value, offer.FromUserId,
-                    $"{listing.Title} ilaniniz icin teklifiniz {statusText} edildi.");
+                var statusText = status == OfferStatus.Accepted ? "kabul edildi" : "reddedildi";
+                var prefix = offer.Type == OfferType.RentalRequest ? "Kiralama talebiniz" : "Teklifiniz";
+                _appService.SendMessage(userId.Value, offer.FromUserId, $"{listing.Title} için {prefix} {statusText}.");
             }
 
             if (status == OfferStatus.Accepted && offer.Type == OfferType.RentalRequest)
             {
-                TempData["Success"] = "Kiralama talebi kabul edildi. Ilan kiralandi olarak isaretlendi.";
+                TempData["Success"] = "Kiralama talebi kabul edildi. İlan kiralandı olarak işaretlendi.";
             }
             else
             {
@@ -64,6 +64,8 @@ public class SellerController : Controller
             TempData["Error"] = ex.Message;
         }
 
-        return RedirectToAction(nameof(Dashboard));
+        return string.Equals(returnTo, nameof(Offers), StringComparison.OrdinalIgnoreCase)
+            ? RedirectToAction(nameof(Offers))
+            : RedirectToAction(nameof(Dashboard));
     }
 }
