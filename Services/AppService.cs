@@ -14,24 +14,24 @@ public class AppService
 
     private static readonly Dictionary<string, List<string>> _locations = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
     {
-        ["Istanbul"] = new List<string> { "Besiktas", "Kadikoy", "Sisli", "Uskudar", "Bakirkoy", "Beylikduzu", "Sariyer", "AtaÅŸehir" },
+        ["Istanbul"] = new List<string> { "Besiktas", "Kadikoy", "Sisli", "Uskudar", "Bakirkoy", "Beylikduzu", "Sariyer", "Ataşehir" },
         ["Ankara"] = new List<string> { "Cankaya", "Yenimahalle", "Kecioren", "Etimesgut", "Mamak", "Golbasi", "Pursaklar" },
         ["Izmir"] = new List<string> { "Karsiyaka", "Bornova", "Konak", "Buca", "Balcova", "Bayrakli", "Guzelbahce" },
         ["Bursa"] = new List<string> { "Nilufer", "Osmangazi", "Yildirim", "Mudanya", "Gursu", "Inegol" },
         ["Antalya"] = new List<string> { "Muratpasa", "Konyaalti", "Kepez", "Lara", "Dosemealti", "Alanya" },
-        ["Adana"] = new List<string> { "Cukurova", "Seyhan", "Yuregir", "SariÃ§am", "Karatas" },
-        ["Konya"] = new List<string> { "Selcuklu", "Meram", "Karatay", "Eregli", "BeyÅŸehir" },
+        ["Adana"] = new List<string> { "Cukurova", "Seyhan", "Yuregir", "Sarıçam", "Karatas" },
+        ["Konya"] = new List<string> { "Selcuklu", "Meram", "Karatay", "Eregli", "Beyşehir" },
         ["Gaziantep"] = new List<string> { "Sahinbey", "Sehitkamil", "Oguzeli", "Nizip", "Islahiye" },
         ["Kocaeli"] = new List<string> { "Izmit", "Gebze", "Basiskele", "Derince", "Golcuk" },
-        ["Mersin"] = new List<string> { "Mezitli", "YeniÅŸehir", "Toroslar", "Tarsus", "Erdemli" },
+        ["Mersin"] = new List<string> { "Mezitli", "Yenişehir", "Toroslar", "Tarsus", "Erdemli" },
         ["Kayseri"] = new List<string> { "Melikgazi", "Kocasinan", "Talas", "Develi", "Yesilhisar" },
-        ["EskiÅŸehir"] = new List<string> { "Tepebasi", "Odunpazari", "Sivrihisar", "Inonu" },
-        ["Samsun"] = new List<string> { "Atakum", "Ä°lkadim", "Canik", "Bafra", "Carsamba" },
+        ["Eskişehir"] = new List<string> { "Tepebasi", "Odunpazari", "Sivrihisar", "Inonu" },
+        ["Samsun"] = new List<string> { "Atakum", "İlkadim", "Canik", "Bafra", "Carsamba" },
         ["Trabzon"] = new List<string> { "Ortahisar", "Yomra", "Akcaabat", "Arsin", "Vakfikebir" },
-        ["Diyarbakir"] = new List<string> { "Baglar", "Kayapinar", "YeniÅŸehir", "Sur", "Bismil" },
-        ["Sanliurfa"] = new List<string> { "Haliliye", "Eyyubiye", "Karakopru", "Siverek", "ViranÅŸehir" },
+        ["Diyarbakir"] = new List<string> { "Baglar", "Kayapinar", "Yenişehir", "Sur", "Bismil" },
+        ["Sanliurfa"] = new List<string> { "Haliliye", "Eyyubiye", "Karakopru", "Siverek", "Viranşehir" },
         ["Erzurum"] = new List<string> { "Yakutiye", "Palandoken", "Aziziye", "Horasan", "Oltu" },
-        ["Malatya"] = new List<string> { "Battalgazi", "Yesilyurt", "Akcadag", "Darende", "DoganÅŸehir" },
+        ["Malatya"] = new List<string> { "Battalgazi", "Yesilyurt", "Akcadag", "Darende", "Doğanşehir" },
         ["Manisa"] = new List<string> { "Sehzadeler", "Yunusemre", "Turgutlu", "Salihli", "Akhisar" },
         ["Balikesir"] = new List<string> { "Ayvalik", "Edremit", "Bandirma", "Karesi", "Altieylul" },
         ["Aydin"] = new List<string> { "Efeler", "Kusadasi", "Didim", "Nazilli", "Soke" },
@@ -110,7 +110,7 @@ public class AppService
         AddColumnIfMissing("Messages", "EditedAt", "TEXT NULL");
         AddColumnIfMissing("Listings", "ImageGalleryJson", "TEXT NOT NULL DEFAULT '[]'");
         AddColumnIfMissing("Users", "PhoneNumber", "TEXT NOT NULL DEFAULT ''");
-        AddColumnIfMissing("Listings", "ListingPurpose", "TEXT NOT NULL DEFAULT 'KiralÄ±k'");
+        AddColumnIfMissing("Listings", "ListingPurpose", "TEXT NOT NULL DEFAULT 'Kiralık'");
         AddColumnIfMissing("Listings", "IsDailyRecommended", "INTEGER NOT NULL DEFAULT 0");
         TryExec("""
             CREATE TABLE IF NOT EXISTS Ratings (
@@ -186,25 +186,25 @@ public class AppService
     private void Seed()
     {
         var admin = EnsureSeedUser(
-            "Sistem Yonetici",
-            "admin@degerliyuvam.com",
+            "Sistem Yönetici",
+            "mobieefe@gmail.com",
             "Admin123!",
             UserRole.Admin,
             "Platform yonetimi ve kalite kontrol.",
             "/img/seed-10.jpeg");
 
         var sellerA = EnsureSeedUser(
-            "Demo SatÄ±cÄ±",
+            "Demo Satıcı",
             "musteri@degerliyuvam.com",
-            "MÃ¼ÅŸteri123!",
+            "Müşteri123!",
             UserRole.Customer,
             "Bosphorus bolgesinde premium kiralik portfoy yonetiyorum.",
             "/img/seed-8.jpeg");
 
         var sellerB = EnsureSeedUser(
-            "SatÄ±cÄ± Elif",
+            "Satıcı Elif",
             "elif@degerliyuvam.com",
-            "SatÄ±cÄ±123!",
+            "Satıcı123!",
             UserRole.Customer,
             "Modern residence ve deniz manzarali ilanlar.",
             "/img/seed-9.jpeg");
@@ -254,13 +254,13 @@ public class AppService
 
         var propertyTypes = new[] { "Daire", "Villa", "Rezidans", "Mustakil Ev", "Dublex" };
         var roomOptions = new[] { "1+1", "2+1", "3+1", "4+1", "5+1" };
-        var heatOptions = new[] { "Kombi Dogalgaz", "Merkezi", "Yerden IsÄ±tma", "Klima", "IsÄ± PompasÄ±" };
+        var heatOptions = new[] { "Kombi Doğalgaz", "Merkezi", "Yerden Isıtma", "Klima", "Isı Pompası" };
         var descriptionTemplates = new[]
         {
             "Sessiz sokakta, gun boyu isik alan planli bir yasam alani sunar.",
             "Toplu ulasima yurume mesafesinde, yeni mutfak ve yenilenmis banyoya sahip.",
             "Site icerisinde guvenlikli giris, sosyal alan ve cocuk parki avantajlari sunar.",
-            "GeniÅŸ salonu, kullanisli odalari ve ferah balkonu ile aile yasamina uygundur.",
+            "Geniş salonu, kullanışlı odaları ve ferah balkonu ile aile yaşamına uygundur.",
             "Market, okul ve hastane aksina yakin konumda konforlu bir kiralik secenektir.",
             "Modern cepheli binada, yuksek kira potansiyelli merkezi bir konumda yer alir.",
             "Acik otopark, asansor ve aidat dengesine sahip duzenli bir site dairesidir.",
@@ -317,7 +317,7 @@ public class AppService
                     District = district,
                     City = BuildCity(city.Key, district),
                     PropertyType = type,
-                    ListingPurpose = listingIndex % 3 == 0 ? "SatÄ±lÄ±k" : "KiralÄ±k",
+                    ListingPurpose = listingIndex % 3 == 0 ? "Satılık" : "Kiralık",
                     RoomCount = room,
                     GrossSquareMeters = gross,
                     NetSquareMeters = net,
@@ -596,7 +596,7 @@ public class AppService
 
     public void UpdateListing(Listing listing)
     {
-        var existing = GetListing(listing.Id) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
+        var existing = GetListing(listing.Id) ?? throw new InvalidOperationException("İlan bulunamadı.");
         existing.Title = listing.Title;
         existing.Description = listing.Description;
         existing.Province = listing.Province;
@@ -667,7 +667,7 @@ public class AppService
 
     public bool ToggleAdminRecommendation(int listingId)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("İlan bulunamadı.");
         listing.IsAdminRecommended = !listing.IsAdminRecommended;
         _db.SaveChanges();
         return listing.IsAdminRecommended;
@@ -675,7 +675,7 @@ public class AppService
 
     public bool ToggleDailyRecommendation(int listingId, int maxCount = 4)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("İlan bulunamadı.");
         if (listing.IsDailyRecommended)
         {
             listing.IsDailyRecommended = false;
@@ -686,7 +686,7 @@ public class AppService
         var selectedCount = _db.Listings.Count(x => x.IsDailyRecommended);
         if (selectedCount >= maxCount)
         {
-            throw new InvalidOperationException($"GÃ¼nÃ¼n tavsiye edilen evleri en fazla {maxCount} ilan olabilir.");
+            throw new InvalidOperationException($"Günün tavsiye edilen evleri en fazla {maxCount} ilan olabilir.");
         }
 
         listing.IsDailyRecommended = true;
@@ -736,11 +736,11 @@ public class AppService
 
     public Rental Rent(int listingId, int renterId, string cardLast4, int? approvedOfferId = null)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("İlan bulunamadı.");
 
         if (listing.OwnerUserId == renterId)
         {
-            throw new InvalidOperationException("SatÄ±cÄ± kendi ilanini kiralayamaz.");
+            throw new InvalidOperationException("Satıcı kendi ilanini kiralayamaz.");
         }
 
         if (listing.IsRented)
@@ -766,7 +766,7 @@ public class AppService
 
     public Offer CreateOffer(int listingId, int fromUserId, decimal amount, string note)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("İlan bulunamadı.");
 
         if (listing.OwnerUserId == fromUserId)
         {
@@ -797,11 +797,11 @@ public class AppService
 
     public Offer CreateRentalRequest(int listingId, int fromUserId, string cardLast4)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("İlan bulunamadı.");
 
         if (listing.OwnerUserId == fromUserId)
         {
-            throw new InvalidOperationException("SatÄ±cÄ± kendi ilanini kiralayamaz.");
+            throw new InvalidOperationException("Satıcı kendi ilanini kiralayamaz.");
         }
 
         if (listing.IsRented)
@@ -870,7 +870,7 @@ public class AppService
             {
                 OfferId = o.Id,
                 ListingId = o.ListingId,
-                ListingTitle = _db.Listings.Where(l => l.Id == o.ListingId).Select(l => l.Title).FirstOrDefault() ?? "Ä°lan",
+                ListingTitle = _db.Listings.Where(l => l.Id == o.ListingId).Select(l => l.Title).FirstOrDefault() ?? "İlan",
                 FromUserName = _db.Users.Where(u => u.Id == o.FromUserId).Select(u => u.FullName).FirstOrDefault() ?? "Bilinmeyen",
                 Amount = o.Amount,
                 Note = o.Note,
@@ -925,7 +925,7 @@ public class AppService
 
     public void UpsertRating(int listingId, int renterUserId, int listingScore, int sellerScore, string comment)
     {
-        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ä°lan bulunamadi.");
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("İlan bulunamadı.");
         if (!CanUserRateListing(listingId, renterUserId))
         {
             throw new InvalidOperationException("Puanlama icin ilani kiralamis olmaniz gerekir.");
