@@ -49,7 +49,7 @@
                         {
                             <form asp-action="ToggleDailyRecommendation" method="post">
                                 <input type="hidden" name="id" value="@item.Id" />
-                                <button type="submit" class="btn-edit">@(item.IsDailyRecommended ? "Gunlukten Kaldir" : "Gunun Tavsiyesi Yap")</button>
+                                <button type="submit" class="btn-edit">Gunlukten Kaldir</button>
                             </form>
                         }
                     </div>
@@ -222,10 +222,6 @@
                     <form asp-action="ToggleDailyRecommendation" method="post">
                         <input type="hidden" name="id" value="@item.Id" />
                         <button type="submit" class="btn-edit">@(item.IsDailyRecommended ? "Gunlukten Kaldir" : "Gunun Tavsiyesi Yap")</button>
-                    </form>
-                    <form asp-action="ToggleAdminRecommendation" method="post">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn-edit">@(item.IsAdminRecommended ? "Oneriyi Kaldir" : "Admin Oner")</button>
                     </form>
                 }
             </div>
