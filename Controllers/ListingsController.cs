@@ -312,10 +312,12 @@ public class ListingsController : Controller
         model.AdditionalImageUrls = model.AdditionalImageUrls?.Trim() ?? string.Empty;
         ApplyCreateDefaults(model);
 
-        if (!model.TermsAccepted)
+        var isAdminCreating = AuthSession.IsAdmin(this);
+        if (!isAdminCreating && !model.TermsAccepted)
         {
             ModelState.AddModelError(nameof(model.TermsAccepted), "Ilan vermek icin kesinti bilgilendirmesini onaylamalisiniz.");
         }
+        if (isAdminCreating) model.TermsAccepted = true;
 
         var gallery = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

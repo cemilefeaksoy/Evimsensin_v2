@@ -100,7 +100,6 @@ public class ListingEditViewModel
     public bool ResetExistingImages { get; set; }
 
     public bool IsAdminRecommended { get; set; }
-    [Range(typeof(bool), "true", "true", ErrorMessage = "Ilan vermek icin kesinti bilgilendirmesini onaylamalisiniz.")]
     public bool TermsAccepted { get; set; }
 }
 

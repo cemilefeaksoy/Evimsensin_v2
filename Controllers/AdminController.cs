@@ -29,14 +29,31 @@ public class AdminController : Controller
         var allUsers = _appService.GetUsers();
         var allListings = _appService.GetListings();
 
-        // ─── KPIs ─────────────────────────────────
+        var activeListings = allListings.Where(x => !x.IsRented).ToList();
+        var rentedListings = allListings.Where(x => x.IsRented).ToList();
+        var pendingSellers = allUsers.Count(x => x.Role == UserRole.Customer && !x.IsSellerApproved);
+
         ViewBag.TotalListings = allListings.Count;
         ViewBag.TotalUsers = allUsers.Count;
-        ViewBag.PendingSellers = allUsers.Count(x => x.Role == UserRole.Customer && !x.IsSellerApproved);
-        ViewBag.ActiveListings = allListings.Count(x => !x.IsRented);
-        ViewBag.RentedListings = allListings.Count(x => x.IsRented);
+        ViewBag.TotalAdmins = allUsers.Count(x => x.Role == UserRole.Admin);
+        ViewBag.PendingSellers = pendingSellers;
+        ViewBag.ActiveListings = activeListings.Count;
+        ViewBag.RentedListings = rentedListings.Count;
+        ViewBag.TotalRevenuePotential = activeListings.Sum(x => x.MonthlyPrice);
+        ViewBag.AverageListingPrice = activeListings.Count > 0
+            ? activeListings.Average(x => x.MonthlyPrice)
+            : 0m;
+        ViewBag.AdminRecommendedCount = allListings.Count(x => x.IsAdminRecommended);
+        ViewBag.DailyRecommendedCount = allListings.Count(x => x.IsDailyRecommended);
+        ViewBag.NewListingsThisMonth = allListings.Count(x => x.CreatedAt.Month == DateTime.UtcNow.Month && x.CreatedAt.Year == DateTime.UtcNow.Year);
+        ViewBag.NewUsersThisMonth = 0;
+        ViewBag.RentalRate = allListings.Count > 0
+            ? (int)Math.Round((double)rentedListings.Count / allListings.Count * 100)
+            : 0;
+        ViewBag.ApprovalRate = allUsers.Count(x => x.Role != UserRole.Admin) > 0
+            ? (int)Math.Round((double)allUsers.Count(x => x.Role == UserRole.Customer && x.IsSellerApproved) / Math.Max(1, allUsers.Count(x => x.Role == UserRole.Customer)) * 100)
+            : 100;
 
-        // ─── User search ──────────────────────────
         var filteredUsers = allUsers.AsEnumerable();
         if (!string.IsNullOrWhiteSpace(userSearch))
         {
@@ -48,7 +65,6 @@ public class AdminController : Controller
         ViewBag.Users = filteredUsers.ToList();
         ViewBag.UserSearch = userSearch;
 
-        // ─── Listing search + date filter ─────────
         var filteredListings = allListings.AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(listingSearch))
@@ -74,6 +90,8 @@ public class AdminController : Controller
         filteredListings = sort switch
         {
             "oldest" => filteredListings.OrderBy(l => l.CreatedAt),
+            "price_desc" => filteredListings.OrderByDescending(l => l.MonthlyPrice),
+            "price_asc" => filteredListings.OrderBy(l => l.MonthlyPrice),
             _ => filteredListings.OrderByDescending(l => l.CreatedAt)
         };
 
@@ -83,7 +101,6 @@ public class AdminController : Controller
         ViewBag.ListingStatus = listingStatus;
         ViewBag.Sort = sort;
 
-        // ─── Global search ────────────────────────
         List<User> searchUsers = new();
         List<Listing> searchListings = new();
         if (!string.IsNullOrWhiteSpace(globalSearch))
@@ -101,8 +118,13 @@ public class AdminController : Controller
         ViewBag.SearchUsers = searchUsers;
         ViewBag.SearchListings = searchListings;
 
-        // ─── Active tab ───────────────────────────
         ViewBag.ActiveTab = tab ?? "overview";
+        ViewBag.TopCities = allListings
+            .GroupBy(x => x.Province)
+            .OrderByDescending(g => g.Count())
+            .Take(5)
+            .Select(g => new { City = g.Key, Count = g.Count(), AvgPrice = (int)g.Average(x => (double)x.MonthlyPrice) })
+            .ToList<dynamic>();
 
         return View(filteredListings.ToList());
     }
