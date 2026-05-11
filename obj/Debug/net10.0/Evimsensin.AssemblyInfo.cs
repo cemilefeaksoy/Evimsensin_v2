@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Evimsensin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+438d2b8836b4cb9c39044b30efb58b63e171b28a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3c0edce1c06b91e42d020e6ba60a597bd476be2c")]
 [assembly: System.Reflection.AssemblyProductAttribute("Evimsensin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Evimsensin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
