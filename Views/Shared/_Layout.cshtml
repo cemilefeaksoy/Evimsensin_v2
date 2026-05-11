@@ -11,7 +11,6 @@
     var profileImage = currentUser?.ProfileImageUrl ?? "/img/seed-8.jpeg";
     var canCreateListing = isLoggedIn && currentUserId.HasValue && AppService.CanCreateListing(currentUserId.Value);
     var pageKey = $"{ViewContext.RouteData.Values["controller"]}-{ViewContext.RouteData.Values["action"]}";
-
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -21,7 +20,7 @@
     <title>@ViewData["Title"] - Evimsensin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body data-page="@pageKey" class="@(isLoggedIn ? "auth" : "guest")">
@@ -32,26 +31,26 @@
     <header class="lux-header" id="luxHeader">
         <div class="header-left">
             <a asp-controller="Home" asp-action="Index" class="nav-link">ANASAYFA</a>
-            <a asp-controller="Listings" asp-action="Index" class="nav-link">ILANLAR</a>
+            <a asp-controller="Listings" asp-action="Index" class="nav-link">İLANLAR</a>
             @if (isLoggedIn && !isAdmin)
             {
-                <a asp-controller="Listings" asp-action="MyListings" class="nav-link">ILANLARIM</a>
+                <a asp-controller="Listings" asp-action="MyListings" class="nav-link">İLANLARIM</a>
             }
             @if (isAdmin)
             {
-                <a asp-controller="Admin" asp-action="Dashboard" class="nav-link">ADMIN</a>
+                <a asp-controller="Admin" asp-action="Dashboard" class="nav-link">ADMİN</a>
             }
         </div>
 
         <a class="brand-center" asp-controller="Home" asp-action="Index">
-            <span class="brand-top">EVIMSENSIN</span>
-            <span class="brand-bottom">SECKIN GAYRIMENKUL</span>
+            <span class="brand-top">EVİMSENSİN</span>
+            <span class="brand-bottom">SEÇKİN GAYRİMENKUL</span>
         </a>
 
         <div class="header-right">
-            <a asp-controller="Home" asp-action="About" class="nav-link">HIZMETLER</a>
+            <a asp-controller="Home" asp-action="About" class="nav-link">HİZMETLER</a>
             <a asp-controller="Home" asp-action="Faq" class="nav-link">REHBER</a>
-            <a asp-controller="Home" asp-action="Contact" class="nav-link">ILETISIM</a>
+            <a asp-controller="Home" asp-action="Contact" class="nav-link">İLETİŞİM</a>
 
             @if (isLoggedIn)
             {
@@ -67,40 +66,39 @@
                         </span>
                         <span class="profile-meta">
                             <strong>@userName</strong>
-                            <small>@(isAdmin ? "Admin" : "Musteri")</small>
+                            <small>@(isAdmin ? "Admin" : "Müşteri")</small>
                         </span>
                         <span class="profile-caret">▾</span>
                     </button>
-
                     <div class="profile-panel" id="profileMenuPanel">
                         <a asp-controller="Profiles" asp-action="Me">👤 Profilim</a>
                         @if (!isAdmin)
                         {
-                            <a asp-controller="Listings" asp-action="MyListings">📋 Ilanlarim</a>
+                            <a asp-controller="Listings" asp-action="MyListings">📋 İlanlarım</a>
                         }
                         @if (canCreateListing)
                         {
-                            <a asp-controller="Listings" asp-action="Create">+ Ilan Ver</a>
+                            <a asp-controller="Listings" asp-action="Create">+ İlan Ver</a>
                         }
                         @if (!isAdmin)
                         {
-                            <a asp-controller="Seller" asp-action="Dashboard">📊 Satici Paneli</a>
+                            <a asp-controller="Seller" asp-action="Dashboard">📊 Satıcı Paneli</a>
                             <a asp-controller="Seller" asp-action="Offers">🤝 Tekliflerim</a>
                         }
                         <a asp-controller="Messages" asp-action="Inbox">💬 Mesaj Kutusu</a>
                         @if (isAdmin)
                         {
                             <a asp-controller="Admin" asp-action="Dashboard">⚡ Admin Paneli</a>
-                            <a href="/Admin/Dashboard?tab=users">👥 Kullanici Yonetimi</a>
+                            <a href="/Admin/Dashboard?tab=users">👥 Kullanıcı Yönetimi</a>
                         }
-                        <a class="danger-link" asp-controller="Account" asp-action="Logout">Cikis Yap</a>
+                        <a class="danger-link" asp-controller="Account" asp-action="Logout">Çıkış Yap</a>
                     </div>
                 </div>
             }
             else
             {
-                <a asp-controller="Account" asp-action="Login" class="mini-link">Giris</a>
-                <a asp-controller="Account" asp-action="Register" class="btn-lux btn-outline">Kayit Ol</a>
+                <a asp-controller="Account" asp-action="Login" class="mini-link">Giriş</a>
+                <a asp-controller="Account" asp-action="Register" class="btn-lux btn-outline">Kayıt Ol</a>
             }
         </div>
     </header>
@@ -112,9 +110,9 @@
             <div class="quick-dock-items" id="quickDockItems">
                 @if (canCreateListing)
                 {
-                    <a asp-controller="Listings" asp-action="Create" class="dock-btn dock-primary">+ Ilan Ver</a>
+                    <a asp-controller="Listings" asp-action="Create" class="dock-btn dock-primary">+ İlan Ver</a>
                 }
-                <a asp-controller="Listings" asp-action="Index" class="dock-btn">Ilanlar</a>
+                <a asp-controller="Listings" asp-action="Index" class="dock-btn">İlanlar</a>
                 @if (!isAdmin)
                 {
                     <a asp-controller="Seller" asp-action="Dashboard" class="dock-btn">Panel</a>
@@ -122,7 +120,7 @@
                 }
                 else
                 {
-                    <a asp-controller="Admin" asp-action="Dashboard" asp-fragment="kullanici-yonetimi" class="dock-btn">Admin Ekle</a>
+                    <a asp-controller="Admin" asp-action="Dashboard" class="dock-btn">Admin Panel</a>
                 }
                 <a asp-controller="Messages" asp-action="Inbox" class="dock-btn dock-msg">
                     Mesajlar
@@ -136,8 +134,45 @@
         @RenderBody()
     </main>
 
-    <footer class="lux-footer">
-        <p>© 2026 Evimsensin | Premium Emlak Deneyimi</p>
+    <footer class="lux-footer-v2">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-brand-name">EVİMSENSİN</div>
+                <div class="footer-brand-tagline">Seçkin Gayrimenkul Platformu</div>
+                <p class="footer-brand-desc">Türkiye'nin dört bir yanındaki kiralık ve satılık premium emlak ilanları tek çatı altında.</p>
+            </div>
+            <div class="footer-links-col">
+                <div class="footer-col-title">İlanlar</div>
+                <a asp-controller="Listings" asp-action="Index">Tüm İlanlar</a>
+                <a asp-controller="Listings" asp-action="Index" asp-route-purpose="Kiralik">Kiralık</a>
+                <a asp-controller="Listings" asp-action="Index" asp-route-purpose="Satilik">Satılık</a>
+                @if (canCreateListing)
+                {
+                    <a asp-controller="Listings" asp-action="Create">İlan Ver</a>
+                }
+            </div>
+            <div class="footer-links-col">
+                <div class="footer-col-title">Platform</div>
+                <a asp-controller="Home" asp-action="About">Hizmetler</a>
+                <a asp-controller="Home" asp-action="Faq">SSS / Rehber</a>
+                <a asp-controller="Home" asp-action="Contact">İletişim</a>
+                @if (!isLoggedIn)
+                {
+                    <a asp-controller="Account" asp-action="Register">Üye Ol</a>
+                }
+            </div>
+            <div class="footer-links-col">
+                <div class="footer-col-title">Komisyon</div>
+                <div class="footer-commission">
+                    <span class="footer-commission-rate">%4 + KDV</span>
+                    <span class="footer-commission-desc">Her işlemde şeffaf, sabit komisyon oranı.</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 Evimsensin · Seçkin Gayrimenkul Platformu</span>
+            <span class="footer-bottom-right">Tüm hakları saklıdır.</span>
+        </div>
     </footer>
 
     <div id="toastContainer" class="toast-stack"></div>
@@ -153,18 +188,16 @@
 
                 let initialized = false;
                 let lastUnread = @unreadCount;
-                let lastNotifiedMessageId = Number(localStorage.getItem('Evimsensin_last_notified_msg_id') || localStorage.getItem('evimsensin_last_notified_msg_id') || 0);
+                let lastNotifiedMessageId = Number(localStorage.getItem('Evimsensin_last_notified_msg_id') || 0);
 
                 function paintBadge(el, count) {
                     if (!el) return;
                     el.textContent = count;
                     el.classList.toggle('show', count > 0);
                 }
-
                 function updateTitle(count) {
                     document.title = count > 0 ? `(${count}) ${baseTitle}` : baseTitle;
                 }
-
                 function beep() {
                     try {
                         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -176,13 +209,9 @@
                         osc.connect(gain);
                         gain.connect(ctx.destination);
                         osc.start();
-                        setTimeout(() => {
-                            osc.stop();
-                            ctx.close();
-                        }, 140);
+                        setTimeout(() => { osc.stop(); ctx.close(); }, 140);
                     } catch {}
                 }
-
                 function showToast(title, text) {
                     if (!toastContainer) return;
                     const item = document.createElement('div');
@@ -190,42 +219,29 @@
                     item.innerHTML = `<strong>${title}</strong><p>${text}</p>`;
                     toastContainer.appendChild(item);
                     setTimeout(() => item.classList.add('visible'), 12);
-                    setTimeout(() => {
-                        item.classList.remove('visible');
-                        setTimeout(() => item.remove(), 260);
-                    }, 5200);
+                    setTimeout(() => { item.classList.remove('visible'); setTimeout(() => item.remove(), 260); }, 5200);
                 }
-
                 async function showBrowserNotification(fromName, preview) {
                     try {
                         if (!('Notification' in window)) return;
-                        if (Notification.permission === 'default') {
-                            await Notification.requestPermission();
-                        }
+                        if (Notification.permission === 'default') await Notification.requestPermission();
                         if (Notification.permission === 'granted') {
-                            new Notification('Evimsensin - Yeni Mesaj', {
-                                body: `${fromName}: ${preview}`,
-                                tag: 'Evimsensin-new-message'
-                            });
+                            new Notification('Evimsensin - Yeni Mesaj', { body: `${fromName}: ${preview}`, tag: 'evimsensin-msg' });
                         }
                     } catch {}
                 }
-
                 async function refreshUnreadBadge() {
                     try {
                         const res = await fetch('/Messages/UnreadCount', { cache: 'no-store' });
                         if (!res.ok) return;
-
                         const data = await res.json();
                         const count = Number(data.unread || 0);
                         const latestId = Number(data.latestUnreadMessageId || 0);
                         const fromName = data.fromName || 'Yeni Mesaj';
-                        const preview = data.preview || 'Yeni mesajiniz var.';
-
+                        const preview = data.preview || 'Yeni mesajınız var.';
                         paintBadge(badgeTop, count);
                         paintBadge(badgeDock, count);
                         updateTitle(count);
-
                         if (initialized && count > lastUnread && latestId > lastNotifiedMessageId) {
                             showToast('Yeni Mesaj', `${fromName}: ${preview}`);
                             beep();
@@ -233,24 +249,21 @@
                             lastNotifiedMessageId = latestId;
                             localStorage.setItem('Evimsensin_last_notified_msg_id', String(latestId));
                         }
-
                         if (!initialized && latestId > 0 && latestId > lastNotifiedMessageId) {
                             localStorage.setItem('Evimsensin_last_notified_msg_id', String(latestId));
                             lastNotifiedMessageId = latestId;
                         }
-
                         lastUnread = count;
                         initialized = true;
                     } catch {}
                 }
-
                 refreshUnreadBadge();
                 setInterval(refreshUnreadBadge, 4000);
             })();
         </script>
     }
-
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </body>
 </html>
