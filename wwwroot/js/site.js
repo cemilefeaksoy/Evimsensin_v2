@@ -94,6 +94,30 @@
     });
   }
 
+  function setupDockMenu() {
+    const dock = document.querySelector('.quick-dock');
+    const toggle = document.getElementById('dockToggle');
+    if (!dock || !toggle) return;
+
+    dock.classList.add('collapsed');
+
+    toggle.addEventListener('click', () => {
+      dock.classList.toggle('collapsed');
+    });
+  }
+
+  function setupDetailedFilter() {
+    const check = document.getElementById('detailedFilterToggle');
+    const box = document.getElementById('detailedFilterBox');
+    if (!check || !box) return;
+
+    const refresh = () => {
+      box.classList.toggle('open', check.checked);
+    };
+    refresh();
+    check.addEventListener('change', refresh);
+  }
+
   function setupImagePreview() {
     const fileInput = document.querySelector('[data-image-upload]');
     const urlInput = document.querySelector('[data-image-url]');
@@ -149,6 +173,23 @@
     });
   }
 
+  function setupListingSubmitGuard() {
+    const form = document.getElementById('listingForm');
+    if (!form) return;
+
+    let submitted = false;
+    form.addEventListener('submit', () => {
+      if (submitted) return;
+      submitted = true;
+
+      const submitBtn = document.getElementById('listingSubmitBtn');
+      if (submitBtn) {
+        submitBtn.setAttribute('disabled', 'disabled');
+        submitBtn.textContent = 'Kaydediliyor...';
+      }
+    });
+  }
+
   function setupLocationSelectors() {
     const provinceSelect = document.querySelector('[data-province-select]');
     const districtSelect = document.querySelector('[data-district-select]');
@@ -165,8 +206,15 @@
       const province = provinceSelect.value;
       const districts = locationMap[province] || [];
       const current = districtSelect.value || districtSelect.getAttribute('data-selected') || '';
+      const placeholder = districtSelect.getAttribute('data-placeholder') || '';
 
       districtSelect.innerHTML = '';
+      if (placeholder) {
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = placeholder;
+        districtSelect.appendChild(emptyOption);
+      }
       districts.forEach((d) => {
         const option = document.createElement('option');
         option.value = d;
@@ -176,6 +224,8 @@
 
       if (current && districts.includes(current)) {
         districtSelect.value = current;
+      } else if (placeholder) {
+        districtSelect.value = '';
       }
     };
 
@@ -385,7 +435,7 @@
 
     drawBars(
       document.getElementById('offerStatusCanvas'),
-      ['Pending', 'Accepted', 'Rejected'],
+      ['Beklemede', 'Kabul', 'Red'],
       [Number(data.pending || 0), Number(data.accepted || 0), Number(data.rejected || 0)],
       '#d6b367'
     );
@@ -414,7 +464,7 @@
       );
       drawBars(
         document.getElementById('offerStatusCanvas'),
-        ['Pending', 'Accepted', 'Rejected'],
+        ['Beklemede', 'Kabul', 'Red'],
         [Number(data.pending || 0), Number(data.accepted || 0), Number(data.rejected || 0)],
         '#d6b367'
       );
@@ -443,7 +493,10 @@
   setupTiltCards();
   setupHeaderState();
   setupProfileMenu();
+  setupDockMenu();
+  setupDetailedFilter();
   setupImagePreview();
+  setupListingSubmitGuard();
   setupLocationSelectors();
   setupMagneticButtons();
   setupParallax();

@@ -11,9 +11,16 @@ public static class AuthSession
         controller.HttpContext.Session.SetString("UserName", user.FullName);
         controller.HttpContext.Session.SetString("Role", user.Role.ToString());
 
+        if (!rememberMe)
+        {
+            controller.HttpContext.Response.Cookies.Delete("EvimsensinRemember");
+            controller.HttpContext.Response.Cookies.Delete("EvimsensinRemember");
+            return;
+        }
+
         var cookieOptions = new CookieOptions
         {
-            Expires = rememberMe ? DateTimeOffset.UtcNow.AddDays(14) : DateTimeOffset.UtcNow.AddHours(12),
+            Expires = DateTimeOffset.UtcNow.AddDays(180),
             HttpOnly = true,
             IsEssential = true
         };
@@ -24,6 +31,7 @@ public static class AuthSession
     public static void SignOut(Controller controller)
     {
         controller.HttpContext.Session.Clear();
+        controller.HttpContext.Response.Cookies.Delete("EvimsensinRemember");
         controller.HttpContext.Response.Cookies.Delete("EvimsensinRemember");
     }
 

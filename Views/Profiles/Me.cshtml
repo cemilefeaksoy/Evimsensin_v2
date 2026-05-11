@@ -1,0 +1,51 @@
+@model ProfileEditViewModel
+@{ ViewData["Title"] = "Profilim"; }
+
+@if (TempData["Success"] is string success && !string.IsNullOrWhiteSpace(success))
+{
+    <section class="panel toast-inline success">@success</section>
+}
+
+<section class="studio-shell reveal-on-scroll">
+    <div class="studio-badge">Kisisel Profil</div>
+    <h2>Profil Ayarlari</h2>
+    <p class="studio-sub">Profil fotografi ve aciklamanizi duzenleyin.</p>
+
+    <form method="post" enctype="multipart/form-data" class="studio-form">
+        <div class="studio-grid">
+            <div>
+                <label>Ad Soyad</label>
+                <input asp-for="FullName" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+
+                <label>Hakkimda</label>
+                <textarea asp-for="Bio" placeholder="Kendinizi kisaca anlatin..."></textarea>
+                <span asp-validation-for="Bio" class="text-danger"></span>
+
+                <label>Profil Fotograf URL</label>
+                <input asp-for="ProfileImageUrl" data-image-url />
+                <span asp-validation-for="ProfileImageUrl" class="text-danger"></span>
+            </div>
+
+            <aside class="studio-preview-panel">
+                <label class="upload-zone" for="ProfileImageFile">
+                    <span class="upload-title">Profil Resmi Yukle</span>
+                    <span class="upload-sub">JPG / PNG / WEBP, max 8MB</span>
+                    <span class="upload-pill">Dosya Sec</span>
+                    <input asp-for="ProfileImageFile" id="ProfileImageFile" type="file" accept=".jpg,.jpeg,.png,.webp" data-image-upload />
+                </label>
+                <span asp-validation-for="ProfileImageFile" class="text-danger"></span>
+
+                <div class="live-preview">
+                    <p>Onizleme</p>
+                    <img id="livePreviewImage" src="@(string.IsNullOrWhiteSpace(Model.ProfileImageUrl) ? "/img/seed-8.jpeg" : Model.ProfileImageUrl)" alt="Profil Onizleme" />
+                </div>
+            </aside>
+        </div>
+
+        <div class="actions actions-pro">
+            <button type="submit" class="btn-glow">Profili Kaydet</button>
+        </div>
+        <div asp-validation-summary="All" class="text-danger"></div>
+    </form>
+</section>

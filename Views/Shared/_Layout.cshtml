@@ -7,22 +7,11 @@
     var userName = Context.Session.GetString("UserName") ?? "";
     var isAdmin = role.Equals("Admin", StringComparison.OrdinalIgnoreCase);
     var unreadCount = isLoggedIn ? AppService.GetUnreadCount(currentUserId!.Value) : 0;
+    var currentUser = isLoggedIn ? AppService.GetUser(currentUserId!.Value) : null;
+    var profileImage = currentUser?.ProfileImageUrl ?? "/img/seed-8.jpeg";
+    var canCreateListing = isLoggedIn && currentUserId.HasValue && AppService.CanCreateListing(currentUserId.Value);
     var pageKey = $"{ViewContext.RouteData.Values["controller"]}-{ViewContext.RouteData.Values["action"]}";
 
-    var initials = "U";
-    if (!string.IsNullOrWhiteSpace(userName))
-    {
-        initials = string.Concat(
-            userName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .Take(2)
-                .Select(x => char.ToUpperInvariant(x[0]))
-        );
-
-        if (string.IsNullOrWhiteSpace(initials))
-        {
-            initials = "U";
-        }
-    }
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -42,17 +31,21 @@
 
     <header class="lux-header" id="luxHeader">
         <div class="header-left">
-            <a asp-controller="Home" asp-action="Index" class="nav-link">Home</a>
-            <a asp-controller="Listings" asp-action="Index" class="nav-link">Portfoy</a>
-            <a asp-controller="Home" asp-action="Faq" class="nav-link">SSS</a>
+            <a asp-controller="Home" asp-action="Index" class="nav-link">ANASAYFA</a>
+            <a asp-controller="Listings" asp-action="Index" class="nav-link">EN IYI EVLER</a>
+            <a asp-controller="Listings" asp-action="Index" class="nav-link">LOKASYONLAR</a>
         </div>
 
         <a class="brand-center" asp-controller="Home" asp-action="Index">
             <span class="brand-top">EVIMSENSIN</span>
-            <span class="brand-bottom">ELEGANCE ESTATE</span>
+            <span class="brand-bottom">SECKIN GAYRIMENKUL</span>
         </a>
 
         <div class="header-right">
+            <a asp-controller="Home" asp-action="About" class="nav-link">HIZMETLER</a>
+            <a asp-controller="Home" asp-action="Faq" class="nav-link">REHBER</a>
+            <a asp-controller="Home" asp-action="Contact" class="nav-link">ILETISIM</a>
+
             @if (isLoggedIn)
             {
                 <a class="mini-link msg-top-link" asp-controller="Messages" asp-action="Inbox" title="Mesajlar">
@@ -62,7 +55,9 @@
 
                 <div class="profile-menu" data-profile-menu>
                     <button class="profile-toggle" id="profileMenuToggle" type="button" aria-expanded="false">
-                        <span class="profile-avatar">@initials</span>
+                        <span class="profile-avatar">
+                            <img src="@profileImage" alt="@userName" />
+                        </span>
                         <span class="profile-meta">
                             <strong>@userName</strong>
                             <small>@(isAdmin ? "Admin" : "Musteri")</small>
@@ -71,12 +66,21 @@
                     </button>
 
                     <div class="profile-panel" id="profileMenuPanel">
-                        <a asp-controller="Listings" asp-action="Create">Ilan Ver</a>
-                        <a asp-controller="Seller" asp-action="Dashboard">Satici Gosterge</a>
+                        <a asp-controller="Profiles" asp-action="Me">Profilim</a>
+                        @if (canCreateListing)
+                        {
+                            <a asp-controller="Listings" asp-action="Create">Ilan Ver</a>
+                        }
+                        @if (!isAdmin)
+                        {
+                            <a asp-controller="Seller" asp-action="Dashboard">Satici Paneli</a>
+                            <a asp-controller="Seller" asp-action="Offers">Tekliflerim</a>
+                        }
                         <a asp-controller="Messages" asp-action="Inbox">Mesaj Kutusu</a>
                         @if (isAdmin)
                         {
                             <a asp-controller="Admin" asp-action="Dashboard">Admin Panel</a>
+                            <a asp-controller="Admin" asp-action="Dashboard" asp-fragment="kullanici-yonetimi">Admin Ekle</a>
                         }
                         <a asp-controller="Home" asp-action="About">Hakkimizda</a>
                         <a asp-controller="Home" asp-action="Contact">Iletisim</a>
@@ -94,14 +98,28 @@
 
     @if (isLoggedIn)
     {
-        <aside class="quick-dock reveal-on-scroll">
-            <a asp-controller="Listings" asp-action="Create" class="dock-btn dock-primary">+ Ilan Ver</a>
-            <a asp-controller="Listings" asp-action="Index" class="dock-btn">Ilanlar</a>
-            <a asp-controller="Seller" asp-action="Dashboard" class="dock-btn">Panel</a>
-            <a asp-controller="Messages" asp-action="Inbox" class="dock-btn dock-msg">
-                Mesajlar
-                <span id="msgUnreadBadgeDock" class="msg-badge @(unreadCount > 0 ? "show" : "")">@unreadCount</span>
-            </a>
+        <aside class="quick-dock collapsed reveal-on-scroll">
+            <button type="button" class="dock-toggle" id="dockToggle">MENÜ</button>
+            <div class="quick-dock-items" id="quickDockItems">
+                @if (canCreateListing)
+                {
+                    <a asp-controller="Listings" asp-action="Create" class="dock-btn dock-primary">+ Ilan Ver</a>
+                }
+                <a asp-controller="Listings" asp-action="Index" class="dock-btn">Ilanlar</a>
+                @if (!isAdmin)
+                {
+                    <a asp-controller="Seller" asp-action="Dashboard" class="dock-btn">Panel</a>
+                    <a asp-controller="Seller" asp-action="Offers" class="dock-btn">Tekliflerim</a>
+                }
+                else
+                {
+                    <a asp-controller="Admin" asp-action="Dashboard" asp-fragment="kullanici-yonetimi" class="dock-btn">Admin Ekle</a>
+                }
+                <a asp-controller="Messages" asp-action="Inbox" class="dock-btn dock-msg">
+                    Mesajlar
+                    <span id="msgUnreadBadgeDock" class="msg-badge @(unreadCount > 0 ? "show" : "")">@unreadCount</span>
+                </a>
+            </div>
         </aside>
     }
 
@@ -126,7 +144,7 @@
 
                 let initialized = false;
                 let lastUnread = @unreadCount;
-                let lastNotifiedMessageId = Number(localStorage.getItem('evimsensin_last_notified_msg_id') || 0);
+                let lastNotifiedMessageId = Number(localStorage.getItem('Evimsensin_last_notified_msg_id') || localStorage.getItem('evimsensin_last_notified_msg_id') || 0);
 
                 function paintBadge(el, count) {
                     if (!el) return;
@@ -178,7 +196,7 @@
                         if (Notification.permission === 'granted') {
                             new Notification('Evimsensin - Yeni Mesaj', {
                                 body: `${fromName}: ${preview}`,
-                                tag: 'evimsensin-new-message'
+                                tag: 'Evimsensin-new-message'
                             });
                         }
                     } catch {}
@@ -204,11 +222,11 @@
                             beep();
                             showBrowserNotification(fromName, preview);
                             lastNotifiedMessageId = latestId;
-                            localStorage.setItem('evimsensin_last_notified_msg_id', String(latestId));
+                            localStorage.setItem('Evimsensin_last_notified_msg_id', String(latestId));
                         }
 
                         if (!initialized && latestId > 0 && latestId > lastNotifiedMessageId) {
-                            localStorage.setItem('evimsensin_last_notified_msg_id', String(latestId));
+                            localStorage.setItem('Evimsensin_last_notified_msg_id', String(latestId));
                             lastNotifiedMessageId = latestId;
                         }
 

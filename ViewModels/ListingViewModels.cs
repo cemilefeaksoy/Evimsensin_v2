@@ -7,6 +7,8 @@ namespace Evimsensin.ViewModels;
 public class ListingDetailsViewModel
 {
     public Listing Listing { get; set; } = new();
+    public List<string> GalleryImages { get; set; } = [];
+    public User? OwnerUser { get; set; }
     public List<Comment> Comments { get; set; } = [];
     public List<OfferDisplayViewModel> Offers { get; set; } = [];
 
@@ -15,11 +17,22 @@ public class ListingDetailsViewModel
     public bool IsLoggedIn { get; set; }
     public bool CanRent { get; set; }
     public bool CanOffer { get; set; }
+    public bool CanComment { get; set; }
+    public bool CanRate { get; set; }
+
+    public double ListingRatingAverage { get; set; }
+    public int ListingRatingCount { get; set; }
+    public double SellerRatingAverage { get; set; }
+    public int SellerRatingCount { get; set; }
+    public int? MyListingScore { get; set; }
+    public int? MySellerScore { get; set; }
+    public string MyRatingComment { get; set; } = string.Empty;
 }
 
 public class ListingEditViewModel
 {
     public int Id { get; set; }
+    public int? OwnerUserId { get; set; }
 
     [Required, StringLength(120)]
     public string Title { get; set; } = string.Empty;
@@ -35,6 +48,9 @@ public class ListingEditViewModel
 
     [Required]
     public string PropertyType { get; set; } = "Daire";
+
+    [Required]
+    public string ListingPurpose { get; set; } = "Kiralik";
 
     [Required]
     public string RoomCount { get; set; } = "2+1";
@@ -78,8 +94,14 @@ public class ListingEditViewModel
 
     public string ImageUrl { get; set; } = string.Empty;
     public IFormFile? ImageFile { get; set; }
+    public List<IFormFile> ImageFiles { get; set; } = [];
+    public string AdditionalImageUrls { get; set; } = string.Empty;
+    public string ExistingImagesCsv { get; set; } = string.Empty;
+    public bool ResetExistingImages { get; set; }
 
     public bool IsAdminRecommended { get; set; }
+    [Range(typeof(bool), "true", "true", ErrorMessage = "Ilan vermek icin kesinti bilgilendirmesini onaylamalisiniz.")]
+    public bool TermsAccepted { get; set; }
 }
 
 public class OfferCreateViewModel
@@ -93,6 +115,20 @@ public class OfferCreateViewModel
     public string Note { get; set; } = string.Empty;
 }
 
+public class RatingCreateViewModel
+{
+    public int ListingId { get; set; }
+
+    [Range(1, 5)]
+    public int ListingScore { get; set; }
+
+    [Range(1, 5)]
+    public int SellerScore { get; set; }
+
+    [StringLength(400)]
+    public string Comment { get; set; } = string.Empty;
+}
+
 public class OfferDisplayViewModel
 {
     public int OfferId { get; set; }
@@ -100,6 +136,7 @@ public class OfferDisplayViewModel
     public string FromUserName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string Note { get; set; } = string.Empty;
+    public OfferType Type { get; set; }
     public OfferStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
 }

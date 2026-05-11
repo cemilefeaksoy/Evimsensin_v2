@@ -2,7 +2,7 @@
 @using System.Text.Json
 @using Evimsensin.Models
 @{
-    ViewData["Title"] = "Satici Gosterge";
+    ViewData["Title"] = "Satici Paneli";
 
     var activeListings = Model.TotalListings - Model.RentedListings;
     var totalOffers = Model.IncomingOffers.Count;
@@ -54,7 +54,7 @@
 
 <section class="dashboard-shell reveal-on-scroll" data-dashboard-json='@Html.Raw(dashboardJson)'>
     <div class="section-head slim">
-        <h2>Satici Gosterge Paneli</h2>
+        <h2>Satici Paneli</h2>
         <p>Ilan durumu, kiralama orani, teklifler ve performans tablolari tek ekranda.</p>
     </div>
 
@@ -62,7 +62,7 @@
         <article class="kpi-card">
             <h3>Toplam Ilan</h3>
             <strong data-count-to="@Model.TotalListings">@Model.TotalListings</strong>
-            <span>Portfoy buyuklugu</span>
+            <span>Toplam ev ilani</span>
         </article>
         <article class="kpi-card">
             <h3>Kiralandi</h3>
@@ -175,6 +175,7 @@
             <thead>
                 <tr>
                     <th>Ilan</th>
+                    <th>Tip</th>
                     <th>Kullanici</th>
                     <th>Tutar</th>
                     <th>Durum</th>
@@ -187,20 +188,25 @@
             {
                 <tr>
                     <td>@o.ListingTitle</td>
+                    <td>@(o.Type == OfferType.RentalRequest ? "Kiralama" : "Fiyat")</td>
                     <td>@o.FromUserName</td>
                     <td>@o.Amount.ToString("N0") TL</td>
                     <td>
                         @if (o.Status == OfferStatus.Pending)
                         {
-                            <span class="status-live">Pending</span>
+                            <span class="status-live">Beklemede</span>
+                        }
+                        else if (o.Status == OfferStatus.Accepted && o.Type == OfferType.RentalRequest)
+                        {
+                            <span class="status-rented">KIRALANDI</span>
                         }
                         else if (o.Status == OfferStatus.Accepted)
                         {
-                            <span class="status-accepted">Accepted</span>
+                            <span class="status-accepted">Kabul Edildi</span>
                         }
                         else
                         {
-                            <span class="status-rejected">Rejected</span>
+                            <span class="status-rejected">Reddedildi</span>
                         }
                     </td>
                     <td>@o.Note</td>

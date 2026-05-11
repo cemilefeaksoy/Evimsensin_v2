@@ -2,12 +2,12 @@
 @{ ViewData["Title"] = "Kayit"; }
 <section class="form-shell">
     <h2>Kayit Ol</h2>
+    <p class="studio-sub">Ad soyad, e-posta ve sifre ile hizli hesap olusturun.</p>
     <form asp-action="Register" method="post">
         <label>Ad Soyad</label><input asp-for="FullName" /><span asp-validation-for="FullName"></span>
         <label>E-posta</label><input asp-for="Email" /><span asp-validation-for="Email"></span>
+        <label>Telefon</label><input asp-for="PhoneNumber" placeholder="05XXXXXXXXX" /><span asp-validation-for="PhoneNumber"></span>
         <label>Sifre</label><input asp-for="Password" type="password" /><span asp-validation-for="Password"></span>
-        <label>Hesap Turu</label>
-        <select asp-for="Role" asp-items="Html.GetEnumSelectList<UserRole>()"></select>
         <label class="chk"><input asp-for="RememberMe" type="checkbox" /> Beni hatirla</label>
         <button class="btn-glow" type="submit">Hesap Olustur</button>
         <div asp-validation-summary="All"></div>

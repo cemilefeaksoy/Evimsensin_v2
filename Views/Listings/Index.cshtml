@@ -1,31 +1,233 @@
 @model List<Listing>
-@{ ViewData["Title"] = "Ilanlar"; }
+@{
+    ViewData["Title"] = "Ilanlar";
+    var isAdmin = Context.Session.GetString("Role") == "Admin";
+    var cities = ViewBag.Cities as List<string> ?? [];
+    var districts = ViewBag.Districts as List<string> ?? [];
+    var rooms = ViewBag.Rooms as List<string> ?? [];
+    var types = ViewBag.Types as List<string> ?? [];
+    var detailed = (bool?)ViewBag.FilterDetailed == true;
+    var locationMapJson = ViewBag.LocationMapJson as string ?? "{}";
+    var allListings = Model.ToList();
+    var dailyRecommendedListings = allListings.Where(x => x.IsDailyRecommended).ToList();
+    var regularListings = allListings.Where(x => !x.IsDailyRecommended).ToList();
+}
+
+@if (TempData["Success"] is string success && !string.IsNullOrWhiteSpace(success))
+{
+    <section class="panel toast-inline success">@success</section>
+}
+@if (TempData["Error"] is string error && !string.IsNullOrWhiteSpace(error))
+{
+    <section class="panel toast-inline danger">@error</section>
+}
+
+@if (dailyRecommendedListings.Any())
+{
+    <section class="recommended-zone daily-top-zone reveal-on-scroll">
+        <div class="section-head slim">
+            <h2>Gunun Tavsiye Edilen Evleri</h2>
+            <p>Admin tarafindan secilen tavsiye ilanlar.</p>
+        </div>
+        <div class="recommended-stack">
+        @foreach (var item in dailyRecommendedListings)
+        {
+            <article class="card-premium tilt-card daily-top-card">
+                <a asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+                    <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+                    @if (item.IsRented)
+                    {
+                        <span class="rented-overlay">KIRALANDI</span>
+                    }
+                </a>
+                <div>
+                    <h3>@item.Title</h3>
+                    <p>@item.ListingPurpose · @item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
+                    <div class="actions actions-pro">
+                        <a class="btn-chat" asp-action="Details" asp-route-id="@item.Id">Detaya Git</a>
+                        @if (isAdmin)
+                        {
+                            <form asp-action="ToggleDailyRecommendation" method="post">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn-edit">@(item.IsDailyRecommended ? "Gunlukten Kaldir" : "Gunun Tavsiyesi Yap")</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </article>
+        }
+        </div>
+    </section>
+}
 
 <section class="panel reveal-on-scroll">
     <div class="section-head slim">
         <h2>Tum Ilanlar</h2>
-        <p>Il / ilce filtresi ile portfoyu daraltin, detaydan teklif verin veya kiralama yapin.</p>
+        <p>Normal filtre: sehir/ilce/fiyat. Detayli filtre: oda, tip ve metrekare.</p>
     </div>
 
-    <form method="get" class="inline-form">
-        <input name="city" placeholder="Orn: Istanbul / Kadikoy" />
-        <button type="submit" class="btn-lux btn-thin">Filtrele</button>
+    <form method="get" class="filter-form">
+        <div class="filter-grid">
+            <select name="purpose">
+                <option value="">Tum Tipler</option>
+                @if (string.Equals(ViewBag.FilterPurpose as string, "Satilik", StringComparison.OrdinalIgnoreCase))
+                {
+                    <option value="Satilik" selected>Satilik</option>
+                }
+                else
+                {
+                    <option value="Satilik">Satilik</option>
+                }
+                @if (string.Equals(ViewBag.FilterPurpose as string, "Kiralik", StringComparison.OrdinalIgnoreCase))
+                {
+                    <option value="Kiralik" selected>Kiralik</option>
+                }
+                else
+                {
+                    <option value="Kiralik">Kiralik</option>
+                }
+            </select>
+            <select name="city" data-province-select data-location-map='@Html.Raw(locationMapJson)'>
+                <option value="">Tum Sehirler</option>
+                @foreach (var c in cities)
+                {
+                    if (string.Equals(c, ViewBag.FilterCity as string, StringComparison.OrdinalIgnoreCase))
+                    {
+                        <option value="@c" selected>@c</option>
+                    }
+                    else
+                    {
+                        <option value="@c">@c</option>
+                    }
+                }
+            </select>
+
+            <select name="district" data-district-select data-selected="@((string?)ViewBag.FilterDistrict ?? "")" data-placeholder="Tum Ilceler">
+                <option value="">Tum Ilceler</option>
+                @foreach (var d in districts)
+                {
+                    if (string.Equals(d, ViewBag.FilterDistrict as string, StringComparison.OrdinalIgnoreCase))
+                    {
+                        <option value="@d" selected>@d</option>
+                    }
+                    else
+                    {
+                        <option value="@d">@d</option>
+                    }
+                }
+            </select>
+
+            <input type="number" name="minPrice" placeholder="Min Fiyat" value="@ViewBag.FilterMinPrice" />
+            <input type="number" name="maxPrice" placeholder="Max Fiyat" value="@ViewBag.FilterMaxPrice" />
+            <select name="sort">
+                @{
+                    var selectedSort = (ViewBag.FilterSort as string ?? "").ToLowerInvariant();
+                }
+                <option value="" selected="@(string.IsNullOrWhiteSpace(selectedSort))">Varsayilan (En Yeni)</option>
+                <option value="title_asc" selected="@(selectedSort == "title_asc")">A'dan Z'ye</option>
+                <option value="title_desc" selected="@(selectedSort == "title_desc")">Z'den A'ya</option>
+                <option value="price_desc" selected="@(selectedSort == "price_desc")">En Pahalidan Ucuza</option>
+                <option value="price_asc" selected="@(selectedSort == "price_asc")">En Ucuzdan Pahaliya</option>
+                <option value="newest" selected="@(selectedSort == "newest")">En Yeni Ilanlar</option>
+                <option value="oldest" selected="@(selectedSort == "oldest")">En Eski Ilanlar</option>
+            </select>
+        </div>
+
+        <label class="chk" style="margin-top:8px;">
+            <input type="checkbox" name="detailed" value="true" @(detailed ? "checked" : "") id="detailedFilterToggle" />
+            Detayli Filtre
+        </label>
+
+        <div id="detailedFilterBox" class="filter-grid filter-advanced @(detailed ? "open" : "")">
+            <select name="room">
+                <option value="">Tum Oda Tipleri</option>
+                @foreach (var room in rooms)
+                {
+                    if (string.Equals(room, ViewBag.FilterRoom as string, StringComparison.OrdinalIgnoreCase))
+                    {
+                        <option value="@room" selected>@room</option>
+                    }
+                    else
+                    {
+                        <option value="@room">@room</option>
+                    }
+                }
+            </select>
+
+            <select name="propertyType">
+                <option value="">Tum Emlak Tipleri</option>
+                @foreach (var t in types)
+                {
+                    if (string.Equals(t, ViewBag.FilterType as string, StringComparison.OrdinalIgnoreCase))
+                    {
+                        <option value="@t" selected>@t</option>
+                    }
+                    else
+                    {
+                        <option value="@t">@t</option>
+                    }
+                }
+            </select>
+
+            <input type="number" name="minNet" placeholder="Min Net m²" value="@ViewBag.FilterMinNet" />
+            <input type="number" name="maxNet" placeholder="Max Net m²" value="@ViewBag.FilterMaxNet" />
+            <input type="number" name="minGross" placeholder="Min Brut m²" value="@ViewBag.FilterMinGross" />
+            <input type="number" name="maxGross" placeholder="Max Brut m²" value="@ViewBag.FilterMaxGross" />
+        </div>
+
+        <div class="actions actions-pro" style="margin-top:10px;">
+            <button type="submit" class="btn-lux btn-thin">Filtrele</button>
+            <a asp-action="Index" class="btn-chat">Temizle</a>
+            @if (Context.Session.GetInt32("UserId").HasValue)
+            {
+                <a asp-action="MyListings" class="btn-edit">Kendi Ilanlarim</a>
+            }
+        </div>
     </form>
 </section>
 
 <section class="grid-cards">
-@foreach (var item in Model)
+@if (!regularListings.Any())
+{
+    <article class="panel">
+        <h3>Bu filtreye uygun ilan bulunamadi</h3>
+        <p>Filtreyi temizleyip tekrar deneyin ya da farkli sehir/ilce secin.</p>
+    </article>
+}
+@foreach (var item in regularListings)
 {
     <article class="card-premium tilt-card reveal-on-scroll">
-        <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+        <a asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+            <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+            @if (item.IsRented)
+            {
+                <span class="rented-overlay">KIRALANDI</span>
+            }
+        </a>
         <div>
-            <h3>@item.Title @if (item.IsAdminRecommended) { <span class="badge-star">★ Admin Oneri</span> }</h3>
-            <p>@item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL/ay</p>
+            <h3>
+                @item.Title
+            </h3>
+            <p>@item.ListingPurpose · @item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
             <p>@item.PropertyType · @item.RoomCount · @item.NetSquareMeters m²</p>
-            <p class="owner-pill">Ilan Sahibi: @item.OwnerName</p>
-            @if (item.IsRented) { <span class="status-rented">Kiralandi</span> }
+            <p class="owner-pill">
+                Ilan Sahibi:
+                <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@item.OwnerUserId">@item.OwnerName</a>
+            </p>
+
             <div class="actions actions-pro">
                 <a class="btn-chat" asp-action="Details" asp-route-id="@item.Id">Detaya Git</a>
+                @if (isAdmin)
+                {
+                    <form asp-action="ToggleDailyRecommendation" method="post">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" class="btn-edit">@(item.IsDailyRecommended ? "Gunlukten Kaldir" : "Gunun Tavsiyesi Yap")</button>
+                    </form>
+                    <form asp-action="ToggleAdminRecommendation" method="post">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" class="btn-edit">@(item.IsAdminRecommended ? "Oneriyi Kaldir" : "Admin Oner")</button>
+                    </form>
+                }
             </div>
         </div>
     </article>

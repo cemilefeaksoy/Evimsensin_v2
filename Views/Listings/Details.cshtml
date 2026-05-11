@@ -1,7 +1,10 @@
 @model ListingDetailsViewModel
 @{
     ViewData["Title"] = "Ilan Detay";
-    var currentUserId = Context.Session.GetInt32("UserId");
+    var listingStars = Math.Clamp((int)Math.Round(Model.ListingRatingAverage, MidpointRounding.AwayFromZero), 0, 5);
+    var sellerStars = Math.Clamp((int)Math.Round(Model.SellerRatingAverage, MidpointRounding.AwayFromZero), 0, 5);
+    var mapQuery = Uri.EscapeDataString($"{Model.Listing.District}, Turkiye");
+    var mapUrl = $"https://www.google.com/maps?q={mapQuery}&output=embed";
 }
 
 @if (TempData["Success"] is string success && !string.IsNullOrWhiteSpace(success))
@@ -14,16 +17,68 @@
 }
 
 <section class="detail-wrap reveal-on-scroll">
-    <img src="@Model.Listing.ImageUrl" alt="@Model.Listing.Title" class="detail-image" />
+    <div class="detail-image-wrap listing-gallery" data-gallery>
+        @for (var i = 0; i < Model.GalleryImages.Count; i++)
+        {
+            var img = Model.GalleryImages[i];
+            <a href="@img" target="_blank" rel="noreferrer" class="gallery-slide @(i == 0 ? "active" : "")" data-slide>
+                <img src="@img" alt="@Model.Listing.Title" class="detail-image" />
+            </a>
+        }
+        @if (Model.GalleryImages.Count > 1)
+        {
+            <button type="button" class="gallery-arrow left" data-gallery-prev aria-label="Onceki fotograf">‹</button>
+            <button type="button" class="gallery-arrow right" data-gallery-next aria-label="Sonraki fotograf">›</button>
+            <div class="gallery-dots">
+                @for (var i = 0; i < Model.GalleryImages.Count; i++)
+                {
+                    <button type="button" class="gallery-dot @(i == 0 ? "active" : "")" data-gallery-dot data-index="@i" aria-label="Fotograf @(i + 1)"></button>
+                }
+            </div>
+        }
+        @if (Model.Listing.IsRented)
+        {
+            <span class="rented-overlay">KIRALANDI</span>
+        }
+    </div>
+
     <div class="panel detail-luxury-panel">
         <h2>@Model.Listing.Title @if (Model.Listing.IsAdminRecommended) { <span class="badge-star">★ Admin Oneri</span> }</h2>
         <p>@Model.Listing.Description</p>
 
-        <div class="detail-price">@Model.Listing.MonthlyPrice.ToString("N0") TL / ay</div>
-        <p class="owner-pill">Ilan Sahibi: @Model.Listing.OwnerName</p>
+        <div class="detail-price">@Model.Listing.MonthlyPrice.ToString("N0") TL</div>
+        <p class="owner-pill">
+            Ilan Puani:
+            <span class="rating-stars">
+                @for (var i = 1; i <= 5; i++)
+                {
+                    <span class="rating-star @(i <= listingStars ? "filled" : "")">★</span>
+                }
+            </span>
+            @Model.ListingRatingAverage.ToString("0.0") / 5 (@Model.ListingRatingCount puan)
+        </p>
+        <p class="owner-pill">
+            Ilan Sahibi:
+            <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@Model.Listing.OwnerUserId">@Model.Listing.OwnerName</a>
+        </p>
+        <p class="owner-pill">
+            Satici Telefon:
+            <strong>@(string.IsNullOrWhiteSpace(Model.OwnerUser?.PhoneNumber) ? "-" : Model.OwnerUser!.PhoneNumber)</strong>
+        </p>
+        <p class="owner-pill">
+            Satici Puani:
+            <span class="rating-stars">
+                @for (var i = 1; i <= 5; i++)
+                {
+                    <span class="rating-star @(i <= sellerStars ? "filled" : "")">★</span>
+                }
+            </span>
+            @Model.SellerRatingAverage.ToString("0.0") / 5 (@Model.SellerRatingCount puan)
+        </p>
 
         <div class="feature-grid">
             <div><strong>Il / Ilce</strong><span>@Model.Listing.Province / @Model.Listing.District</span></div>
+            <div><strong>Ilan Tipi</strong><span>@Model.Listing.ListingPurpose</span></div>
             <div><strong>Emlak Tipi</strong><span>@Model.Listing.PropertyType</span></div>
             <div><strong>Oda</strong><span>@Model.Listing.RoomCount</span></div>
             <div><strong>Brut/Net</strong><span>@Model.Listing.GrossSquareMeters m² / @Model.Listing.NetSquareMeters m²</span></div>
@@ -55,6 +110,17 @@
                 <a class="btn-chat" href="#offerBox">Teklif Ver</a>
                 <a class="btn-chat" asp-controller="Messages" asp-action="Chat" asp-route-withUserId="@Model.Listing.OwnerUserId">Saticiya Mesaj At</a>
             }
+            @if (Model.IsAdmin)
+            {
+                <form asp-action="ToggleDailyRecommendation" method="post">
+                    <input type="hidden" name="id" value="@Model.Listing.Id" />
+                    <button type="submit" class="btn-edit">@(Model.Listing.IsDailyRecommended ? "Gunlukten Kaldir" : "Gunun Tavsiyesi Yap")</button>
+                </form>
+                <form asp-action="ToggleAdminRecommendation" method="post">
+                    <input type="hidden" name="id" value="@Model.Listing.Id" />
+                    <button type="submit" class="btn-edit">@(Model.Listing.IsAdminRecommended ? "Admin Onerisini Kaldir" : "Admin Onerisi Yap")</button>
+                </form>
+            }
         </div>
 
         @if (Model.CanEdit)
@@ -69,6 +135,77 @@
         }
     </div>
 </section>
+
+@if (Model.IsLoggedIn)
+{
+    <section class="panel reveal-on-scroll">
+        <h3>Ev ve Satici Puanla</h3>
+        @if (Model.CanRate)
+        {
+            <form asp-action="AddRating" method="post" class="offer-form">
+                <input type="hidden" name="ListingId" value="@Model.Listing.Id" />
+                <div class="row-2">
+                    <div>
+                        <label>Ev Puani (1-5)</label>
+                        <input type="number" name="ListingScore" min="1" max="5" value="@(Model.MyListingScore ?? 5)" required />
+                    </div>
+                    <div>
+                        <label>Satici Puani (1-5)</label>
+                        <input type="number" name="SellerScore" min="1" max="5" value="@(Model.MySellerScore ?? 5)" required />
+                    </div>
+                </div>
+                <div>
+                    <label>Yorum (opsiyonel)</label>
+                    <textarea name="Comment" maxlength="400">@Model.MyRatingComment</textarea>
+                </div>
+                <button type="submit" class="btn-glow">Puani Kaydet</button>
+            </form>
+        }
+        else
+        {
+            <p class="studio-sub">Puan verebilmek icin bu evi kiralamis olmaniz gerekir.</p>
+        }
+    </section>
+}
+
+@section Scripts {
+<script>
+(() => {
+    const gallery = document.querySelector('[data-gallery]');
+    if (!gallery) return;
+
+    const slides = Array.from(gallery.querySelectorAll('[data-slide]'));
+    const dots = Array.from(gallery.querySelectorAll('[data-gallery-dot]'));
+    const prevBtn = gallery.querySelector('[data-gallery-prev]');
+    const nextBtn = gallery.querySelector('[data-gallery-next]');
+    if (slides.length <= 1) return;
+
+    let index = 0;
+    const paint = () => {
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+    };
+
+    const go = (nextIndex) => {
+        const total = slides.length;
+        index = (nextIndex + total) % total;
+        paint();
+    };
+
+    prevBtn?.addEventListener('click', () => go(index - 1));
+    nextBtn?.addEventListener('click', () => go(index + 1));
+
+    dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+            const target = Number(dot.getAttribute('data-index') || 0);
+            go(target);
+        });
+    });
+
+    paint();
+})();
+</script>
+}
 
 @if (Model.CanOffer)
 {
@@ -98,6 +235,7 @@
                 <thead>
                     <tr>
                         <th>Kullanici</th>
+                        <th>Tip</th>
                         <th>Tutar</th>
                         <th>Durum</th>
                         <th>Tarih</th>
@@ -108,8 +246,26 @@
                 {
                     <tr>
                         <td>@o.FromUserName</td>
+                        <td>@(o.Type == OfferType.RentalRequest ? "Kiralama Talebi" : "Fiyat Teklifi")</td>
                         <td>@o.Amount.ToString("N0") TL</td>
-                        <td>@o.Status</td>
+                        <td>
+                            @if (o.Type == OfferType.RentalRequest && o.Status == OfferStatus.Accepted)
+                            {
+                                @:KIRALANDI
+                            }
+                            else if (o.Status == OfferStatus.Pending)
+                            {
+                                @:Beklemede
+                            }
+                            else if (o.Status == OfferStatus.Accepted)
+                            {
+                                @:Kabul Edildi
+                            }
+                            else
+                            {
+                                @:Reddedildi
+                            }
+                        </td>
                         <td>@o.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
                     </tr>
                 }
@@ -123,11 +279,18 @@
     <h3>Yorumlar</h3>
     @if (Model.IsLoggedIn)
     {
-        <form asp-action="AddComment" method="post" class="inline-form">
-            <input type="hidden" name="listingId" value="@Model.Listing.Id" />
-            <input name="content" placeholder="Yorum yaz..." />
-            <button type="submit">Yayinla</button>
-        </form>
+        if (Model.CanComment)
+        {
+            <form asp-action="AddComment" method="post" class="inline-form">
+                <input type="hidden" name="listingId" value="@Model.Listing.Id" />
+                <input name="content" placeholder="Bu evi kiraladiktan sonraki deneyiminizi yazin..." />
+                <button type="submit">Yayinla</button>
+            </form>
+        }
+        else
+        {
+            <p class="studio-sub">Yorum yalnizca bu ilani kiralayan kullanicilar tarafindan yazilabilir.</p>
+        }
     }
     @foreach (var c in Model.Comments)
     {
@@ -139,9 +302,20 @@
                 <form asp-controller="Admin" asp-action="DeleteComment" method="post">
                     <input type="hidden" name="commentId" value="@c.Id" />
                     <input type="hidden" name="listingId" value="@Model.Listing.Id" />
-                    <button type="submit">Yorumu Sil</button>
+                    <button type="submit" class="btn-delete">Yorumu Sil</button>
                 </form>
             }
         </div>
     }
+</section>
+
+<section class="panel reveal-on-scroll">
+    <h3>Ev Nerede?</h3>
+    <p class="studio-sub">@Model.Listing.District bolgesi harita gorunumu</p>
+    <iframe
+        class="listing-map-frame"
+        src="@mapUrl"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen></iframe>
 </section>

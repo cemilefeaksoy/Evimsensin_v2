@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Evimsensin.Models;
-
 namespace Evimsensin.ViewModels;
 
 public class RegisterViewModel
@@ -11,11 +9,11 @@ public class RegisterViewModel
     [Required, EmailAddress]
     public string Email { get; set; } = string.Empty;
 
+    [Required, StringLength(20, MinimumLength = 10)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
     [Required, MinLength(6)]
     public string Password { get; set; } = string.Empty;
-
-    [Required]
-    public UserRole Role { get; set; } = UserRole.Customer;
 
     public bool RememberMe { get; set; }
 }

@@ -1,5 +1,11 @@
 @model ChatThreadViewModel
 @{ ViewData["Title"] = "Sohbet"; }
+
+@if (TempData["Error"] is string error && !string.IsNullOrWhiteSpace(error))
+{
+    <section class="panel toast-inline danger">@error</section>
+}
+
 <section class="panel chat-shell">
     <div class="chat-head">
         <h2>@Model.OtherUser.FullName ile Sohbet</h2>
@@ -10,16 +16,51 @@
         @foreach (var msg in Model.Messages)
         {
             var mine = msg.FromUserId == Model.CurrentUserId;
-            <div class="chat-bubble @(mine ? "mine" : "other")">
-                <p>@msg.Content</p>
-                <small>@msg.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small>
+            <div class="chat-bubble @(mine ? "mine" : "other")" data-message-id="@msg.Id">
+                <div class="chat-content">
+                    @if (msg.IsDeleted)
+                    {
+                        <p class="msg-deleted">Bu mesaj silindi.</p>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrWhiteSpace(msg.ImageUrl))
+                        {
+                            <a href="@msg.ImageUrl" target="_blank" rel="noreferrer" class="chat-image-wrap">
+                                <img src="@msg.ImageUrl" alt="Sohbet gorseli" class="chat-image" />
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(msg.Content))
+                        {
+                            <p class="chat-text">@msg.Content</p>
+                        }
+                    }
+                </div>
+                <div class="chat-meta-row">
+                    <small>@msg.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") @(msg.IsEdited && !msg.IsDeleted ? "(duzenlendi)" : "")</small>
+                    @if (mine && !msg.IsDeleted)
+                    {
+                        <div class="chat-actions">
+                            <button type="button" class="chat-action-btn edit" data-action="edit" data-id="@msg.Id">Duzenle</button>
+                            <button type="button" class="chat-action-btn delete" data-action="delete" data-id="@msg.Id">Sil</button>
+                        </div>
+                    }
+                </div>
             </div>
         }
     </div>
 
-    <form asp-action="Send" method="post" class="chat-form">
+    <form asp-action="Send" method="post" class="chat-form" enctype="multipart/form-data" id="chatSendForm">
+        @Html.AntiForgeryToken()
         <input type="hidden" name="withUserId" value="@ViewBag.WithUserId" />
-        <input name="content" placeholder="Mesajinizi yazin..." autocomplete="off" maxlength="1000" />
+        <div class="chat-upload-row">
+            <button type="button" class="chat-attach-btn" id="openAttachment" title="Gorsel ekle">Atac</button>
+            <input type="file" id="chatImageInput" name="imageFile" accept=".jpg,.jpeg,.png,.webp,.gif" class="chat-file-input" />
+            <span id="chatFileName" class="chat-file-name">Gorsel secilmedi</span>
+        </div>
+        <img id="chatUploadPreview" class="chat-upload-preview" alt="Yuklenen gorsel onizleme" />
+        <input name="content" id="chatContentInput" placeholder="Mesajinizi yazin..." autocomplete="off" maxlength="1000" />
         <button type="submit" class="btn-glow">Gonder</button>
     </form>
 </section>
@@ -30,6 +71,10 @@
     const withUserId = @ViewBag.WithUserId;
     const currentUserId = @Model.CurrentUserId;
     const container = document.getElementById('chatList');
+    const attachBtn = document.getElementById('openAttachment');
+    const imageInput = document.getElementById('chatImageInput');
+    const fileName = document.getElementById('chatFileName');
+    const uploadPreview = document.getElementById('chatUploadPreview');
     let signature = '';
 
     const escapeHtml = (value) => {
@@ -42,6 +87,36 @@
         return el.scrollHeight - el.scrollTop - el.clientHeight < 80;
     }
 
+    function buildMessageHtml(m) {
+        const mine = Number(m.fromUserId) === Number(currentUserId);
+        const safeDate = escapeHtml(m.createdAt);
+        const isDeleted = Boolean(m.isDeleted);
+        const isEdited = Boolean(m.isEdited);
+        const imageHtml = !isDeleted && m.imageUrl
+            ? `<a href="${escapeHtml(m.imageUrl)}" target="_blank" rel="noreferrer" class="chat-image-wrap"><img src="${escapeHtml(m.imageUrl)}" alt="Sohbet gorseli" class="chat-image" /></a>`
+            : '';
+        const contentHtml = !isDeleted && m.content
+            ? `<p class="chat-text">${escapeHtml(m.content)}</p>`
+            : '';
+        const deletedHtml = isDeleted ? '<p class="msg-deleted">Bu mesaj silindi.</p>' : '';
+        const editedText = isEdited && !isDeleted ? ' (duzenlendi)' : '';
+
+        const actionsHtml = m.canManage && !isDeleted
+            ? `<div class="chat-actions">
+                    <button type="button" class="chat-action-btn edit" data-action="edit" data-id="${m.id}">Duzenle</button>
+                    <button type="button" class="chat-action-btn delete" data-action="delete" data-id="${m.id}">Sil</button>
+               </div>`
+            : '';
+
+        return `<div class="chat-bubble ${mine ? 'mine' : 'other'}" data-message-id="${m.id}">
+                    <div class="chat-content">${deletedHtml}${imageHtml}${contentHtml}</div>
+                    <div class="chat-meta-row">
+                        <small>${safeDate}${editedText}</small>
+                        ${actionsHtml}
+                    </div>
+                </div>`;
+    }
+
     async function refreshConversation() {
         try {
             const shouldStickBottom = isNearBottom(container);
@@ -49,23 +124,116 @@
             if (!res.ok) return;
 
             const data = await res.json();
-            const nextSignature = data.length ? `${data[data.length - 1].id}-${data.length}` : '0';
+            const nextSignature = data.map(m => `${m.id}|${m.isDeleted ? 1 : 0}|${m.isEdited ? 1 : 0}|${m.content || ''}|${m.imageUrl || ''}`).join('~');
             if (nextSignature === signature) return;
             signature = nextSignature;
 
-            const html = data.map(m => {
-                const mine = Number(m.fromUserId) === Number(currentUserId);
-                return `<div class="chat-bubble ${mine ? 'mine' : 'other'}"><p>${escapeHtml(m.content)}</p><small>${escapeHtml(m.createdAt)}</small></div>`;
-            }).join('');
-
-            container.innerHTML = html;
+            container.innerHTML = data.map(buildMessageHtml).join('');
             if (shouldStickBottom) {
                 container.scrollTop = container.scrollHeight;
             }
         } catch {}
     }
 
+    async function updateMessage(messageId, content) {
+        const formData = new FormData();
+        formData.append('withUserId', String(withUserId));
+        formData.append('messageId', String(messageId));
+        formData.append('content', content);
+
+        const res = await fetch('/Messages/Edit', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!res.ok) {
+            const payload = await res.json().catch(() => ({ error: 'Mesaj duzenlenemedi.' }));
+            alert(payload.error || 'Mesaj duzenlenemedi.');
+            return;
+        }
+
+        await refreshConversation();
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function removeMessage(messageId) {
+        const formData = new FormData();
+        formData.append('withUserId', String(withUserId));
+        formData.append('messageId', String(messageId));
+
+        const res = await fetch('/Messages/Delete', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!res.ok) {
+            const payload = await res.json().catch(() => ({ error: 'Mesaj silinemedi.' }));
+            alert(payload.error || 'Mesaj silinemedi.');
+            return;
+        }
+
+        await refreshConversation();
+        container.scrollTop = container.scrollHeight;
+    }
+
+    container.addEventListener('click', async (event) => {
+        const target = event.target.closest('[data-action]');
+        if (!target) return;
+
+        const action = target.getAttribute('data-action');
+        const messageId = Number(target.getAttribute('data-id') || 0);
+        if (!messageId) return;
+
+        if (action === 'delete') {
+            const approved = confirm('Bu mesaji silmek istiyor musunuz?');
+            if (!approved) return;
+            await removeMessage(messageId);
+            return;
+        }
+
+        if (action === 'edit') {
+            const bubble = target.closest('.chat-bubble');
+            const currentText = bubble?.querySelector('.chat-text')?.textContent || '';
+            const next = prompt('Mesaji duzenle', currentText);
+            if (next === null) return;
+
+            const normalized = next.trim();
+            if (!normalized) {
+                alert('Mesaj bos birakilamaz.');
+                return;
+            }
+
+            await updateMessage(messageId, normalized);
+        }
+    });
+
+    if (attachBtn && imageInput) {
+        attachBtn.addEventListener('click', () => imageInput.click());
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files?.[0];
+            if (!file) {
+                if (fileName) fileName.textContent = 'Gorsel secilmedi';
+                if (uploadPreview) {
+                    uploadPreview.removeAttribute('src');
+                    uploadPreview.classList.remove('show');
+                }
+                return;
+            }
+
+            if (fileName) fileName.textContent = file.name;
+            if (!uploadPreview) return;
+            const objectUrl = URL.createObjectURL(file);
+            uploadPreview.src = objectUrl;
+            uploadPreview.classList.add('show');
+            uploadPreview.onload = () => URL.revokeObjectURL(objectUrl);
+        });
+    }
+
     refreshConversation();
+    container.scrollTop = container.scrollHeight;
     setInterval(refreshConversation, 3000);
 })();
 </script>

@@ -24,6 +24,9 @@ public class Listing
     [Required, StringLength(60)]
     public string PropertyType { get; set; } = "Daire";
 
+    [Required, StringLength(20)]
+    public string ListingPurpose { get; set; } = "Kiralik";
+
     [Required, StringLength(40)]
     public string RoomCount { get; set; } = "2+1";
 
@@ -66,6 +69,7 @@ public class Listing
 
     [Required]
     public string ImageUrl { get; set; } = string.Empty;
+    public string ImageGalleryJson { get; set; } = "[]";
 
     public int OwnerUserId { get; set; }
     public string OwnerName { get; set; } = string.Empty;
@@ -73,6 +77,7 @@ public class Listing
     public bool IsRented { get; set; }
     public DateTime? RentedAt { get; set; }
 
+    public bool IsDailyRecommended { get; set; }
     public bool IsAdminRecommended { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

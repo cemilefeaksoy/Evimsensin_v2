@@ -48,7 +48,7 @@ public class AccountController : Controller
 
         try
         {
-            var user = _appService.Register(model.FullName, model.Email, model.Password, model.Role);
+            var user = _appService.Register(model.FullName, model.Email, model.PhoneNumber, model.Password);
             AuthSession.SignIn(this, user, model.RememberMe);
             return RedirectToAction("Index", "Listings");
         }

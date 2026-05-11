@@ -1,20 +1,102 @@
 @model List<Listing>
-@{ ViewData["Title"] = "Admin Panel"; }
-<section class="panel reveal-on-scroll">
-    <h2>Admin Dashboard</h2>
-    <p>Toplam ilan: @ViewBag.TotalListings</p>
-    <p>Admin olarak tum satci/kullanici ilanlarini duzenleyebilir, silebilir ve admin onerisi verebilirsiniz.</p>
+@{
+    ViewData["Title"] = "Admin Panel";
+    var users = ViewBag.Users as List<User> ?? [];
+}
+
+@if (TempData["Success"] is string success && !string.IsNullOrWhiteSpace(success))
+{
+    <section class="panel toast-inline success">@success</section>
+}
+@if (TempData["Error"] is string error && !string.IsNullOrWhiteSpace(error))
+{
+    <section class="panel toast-inline danger">@error</section>
+}
+
+<section class="panel reveal-on-scroll" id="kullanici-yonetimi">
+    <div class="section-head slim">
+        <h2>Admin Yonetim Paneli</h2>
+        <p>Tum ilanlar, satıcı onaylari ve kullanici yonetimi burada.</p>
+    </div>
+
+    <div class="kpi-grid">
+        <article class="kpi-card"><h3>Toplam Ilan</h3><strong>@ViewBag.TotalListings</strong><span>Yayindaki ev adedi</span></article>
+        <article class="kpi-card"><h3>Toplam Kullanici</h3><strong>@ViewBag.TotalUsers</strong><span>Uye sayisi</span></article>
+        <article class="kpi-card"><h3>Bekleyen Satici</h3><strong>@ViewBag.PendingSellers</strong><span>Onay bekleyen</span></article>
+    </div>
 </section>
+
+<section class="panel reveal-on-scroll">
+    <h2>Kullanici Yonetimi</h2>
+    <div class="offers-table-wrap">
+        <table class="lux-table">
+            <thead>
+                <tr>
+                    <th>Kullanici</th>
+                    <th>E-posta</th>
+                    <th>Rol</th>
+                    <th>Satici Onayi</th>
+                    <th>Islem</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var u in users)
+            {
+                <tr>
+                    <td>@u.FullName</td>
+                    <td>@u.Email</td>
+                    <td>@u.Role</td>
+                    <td>@(u.IsSellerApproved ? "Onayli" : "Bekliyor")</td>
+                    <td>
+                        <div class="offer-actions">
+                            <a class="btn-edit" asp-action="EditUser" asp-route-id="@u.Id">Duzenle</a>
+                            @if (u.Role != UserRole.Admin)
+                            {
+                                <form asp-action="ToggleSellerApproval" method="post">
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn-chat">@(u.IsSellerApproved ? "Onayi Kaldir" : "Onayla")</button>
+                                </form>
+                            }
+                            <form asp-action="ToggleAdminRole" method="post">
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button type="submit" class="btn-chat">@(u.Role == UserRole.Admin ? "Adminligi Kaldir" : "Admin Yap")</button>
+                            </form>
+                            <form asp-action="DeleteUser" method="post">
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button type="submit" class="btn-delete">Sil</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
 <section class="grid-cards">
 @foreach (var item in Model)
 {
     <article class="card-premium tilt-card reveal-on-scroll">
-        <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+        <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+            <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+            @if (item.IsRented)
+            {
+                <span class="rented-overlay">KIRALANDI</span>
+            }
+        </a>
         <div>
-            <h3>@item.Title</h3>
+            <h3>@item.Title @if (item.IsAdminRecommended) { <span class="badge-star">★ Admin Oneri</span> }</h3>
             <p>@item.City</p>
+            <p><strong>@item.MonthlyPrice.ToString("N0") TL/ay</strong></p>
             <p class="owner-pill">Ilan Sahibi: @item.OwnerName</p>
-            <a asp-controller="Listings" asp-action="Edit" asp-route-id="@item.Id">Yonet</a>
+            <div class="actions actions-pro">
+                <a class="btn-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@item.Id">Duzenle</a>
+                <form asp-controller="Listings" asp-action="ToggleAdminRecommendation" method="post">
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button type="submit" class="btn-chat">@(item.IsAdminRecommended ? "Oneriyi Kaldir" : "Admin Oner")</button>
+                </form>
+            </div>
         </div>
     </article>
 }

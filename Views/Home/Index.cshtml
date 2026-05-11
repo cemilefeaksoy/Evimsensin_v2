@@ -3,27 +3,39 @@
     ViewData["Title"] = "Ana Sayfa";
     var featured = Model.Take(3).ToList();
     var luxury = Model.Skip(3).Take(3).ToList();
+    var canCreateListing = Context.Session.GetInt32("UserId").HasValue;
 }
 
-<section class="estate-hero reveal-on-scroll" data-parallax-container>
-    <img src="~/img/lux-hero.png" alt="Premium villa" class="estate-hero-bg" data-parallax="0.12" />
-    <div class="estate-hero-overlay"></div>
+<div class="home-watermark" aria-hidden="true">
+    <span class="wm-main">EVIMSENSIN</span>
+    <span class="wm-sub">bycea</span>
+</div>
 
+<section class="estate-hero reveal-on-scroll">
     <div class="estate-hero-content">
         <span class="hero-kicker">SECKIN YASAM KOLEKSIYONU</span>
         <h1>Mukemmelligin Yeni Adresi.</h1>
         <p>Dunyanin en seckin konumlarinda, sadece size ozel premium yasam alanlari.</p>
         <div class="hero-actions">
-            <a class="btn-lux" asp-controller="Listings" asp-action="Index">Portfoyu Kesfet</a>
-            <a class="btn-lux btn-ghost" asp-controller="Listings" asp-action="Create">Ilan Ver</a>
+            <a class="btn-lux" asp-controller="Listings" asp-action="Index">En Iyi Evleri Kesfet</a>
+            @if (canCreateListing)
+            {
+                <a class="btn-lux btn-ghost" asp-controller="Listings" asp-action="Create">Ilan Ver</a>
+            }
         </div>
     </div>
 
-    <div class="hero-bottom-cards reveal-on-scroll">
+    <div class="hero-gallery reveal-on-scroll">
         @foreach (var item in featured)
         {
-            <article class="hero-mini-card tilt-card">
-                <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+            <article class="hero-gallery-card tilt-card">
+                <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+                    <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+                    @if (item.IsRented)
+                    {
+                        <span class="rented-overlay">KIRALANDI</span>
+                    }
+                </a>
                 <div>
                     <h3>@item.Title</h3>
                     <p>@item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
@@ -35,7 +47,7 @@
 </section>
 
 <section class="section-head reveal-on-scroll">
-    <h2>Seckin Portfoyumuz</h2>
+    <h2>En Iyi Evler</h2>
     <p>Admin oneri yildizli ilanlar ve guvenli kiralama deneyimi.</p>
 </section>
 
@@ -43,7 +55,13 @@
 @foreach (var item in luxury)
 {
     <article class="portfolio-card reveal-on-scroll tilt-card">
-        <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+        <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+            <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+            @if (item.IsRented)
+            {
+                <span class="rented-overlay">KIRALANDI</span>
+            }
+        </a>
         <div class="portfolio-body">
             <h3>
                 @item.Title
@@ -74,6 +92,6 @@
     </article>
     <article class="lifestyle-box">
         <h3>Satıcı Paneli</h3>
-        <p>Gosterge paneli ile hangi ilanin kiralandigi, teklifler ve donusum oranlarini takip edin.</p>
+        <p>Satici paneli ile hangi ilanin kiralandigini, teklifleri ve donusum oranlarini takip edin.</p>
     </article>
 </section>

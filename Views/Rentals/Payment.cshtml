@@ -1,9 +1,9 @@
 @model PaymentViewModel
 @{ ViewData["Title"] = "Odeme"; }
 <section class="form-shell reveal-on-scroll">
-    <h2>Guvenli Odeme</h2>
+    <h2>Kiralama Talebi Odeme</h2>
     <p><strong>Ilan:</strong> @Model.ListingTitle</p>
-    <p class="studio-sub">Kiralama tamamlandiginda saticiya anlik bildirim gider.</p>
+    <p class="studio-sub">Odeme adimindan sonra talebiniz saticiya gider ve satici kabul/ret verir.</p>
 
     <form method="post">
         <input asp-for="ListingId" type="hidden" />
@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <button class="btn-glow" type="submit">Odemeyi Tamamla</button>
+        <button class="btn-glow" type="submit">Talebi Gonder</button>
         <div asp-validation-summary="All"></div>
     </form>
 </section>

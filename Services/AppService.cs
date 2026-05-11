@@ -1,35 +1,56 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using Evimsensin.Data;
 using Evimsensin.Models;
 using Evimsensin.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace Evimsensin.Services;
 
 public class AppService
 {
-    private readonly AppDataStore _store;
+    private readonly AppDbContext _db;
 
     private static readonly Dictionary<string, List<string>> _locations = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Istanbul"] = ["Besiktas", "Kadikoy", "Sisli", "Uskudar", "Bakirkoy", "Beylikduzu"],
-        ["Ankara"] = ["Cankaya", "Yenimahalle", "Kecioren", "Etimesgut", "Mamak"],
-        ["Izmir"] = ["Karsiyaka", "Bornova", "Konak", "Buca", "Balcova"],
-        ["Bursa"] = ["Nilufer", "Osmangazi", "Yildirim", "Mudanya"],
-        ["Antalya"] = ["Muratpasa", "Konyaalti", "Lara", "Kepez", "Dosemealti"],
-        ["Mugla"] = ["Bodrum", "Marmaris", "Fethiye", "Datca"],
-        ["Eskisehir"] = ["Tepebasi", "Odunpazari"],
-        ["Mersin"] = ["Mezitli", "Yenisehir", "Tarsus"],
-        ["Trabzon"] = ["Ortahisar", "Yomra", "Akcaabat"],
-        ["Samsun"] = ["Atakum", "Ilkadim", "Canik"],
-        ["Kayseri"] = ["Melikgazi", "Kocasinan", "Talas"],
-        ["Gaziantep"] = ["Sahinbey", "Sehitkamil"],
-        ["Konya"] = ["Selcuklu", "Meram", "Karatay"],
-        ["Balikesir"] = ["Ayvalik", "Edremit", "Bandirma"],
-        ["Aydin"] = ["Kusadasi", "Didim", "Efeler"]
+        ["Istanbul"] = ["Besiktas", "Kadikoy", "Sisli", "Uskudar", "Bakirkoy", "Beylikduzu", "Sariyer", "Atasehir"],
+        ["Ankara"] = ["Cankaya", "Yenimahalle", "Kecioren", "Etimesgut", "Mamak", "Golbasi", "Pursaklar"],
+        ["Izmir"] = ["Karsiyaka", "Bornova", "Konak", "Buca", "Balcova", "Bayrakli", "Guzelbahce"],
+        ["Bursa"] = ["Nilufer", "Osmangazi", "Yildirim", "Mudanya", "Gursu", "Inegol"],
+        ["Antalya"] = ["Muratpasa", "Konyaalti", "Kepez", "Lara", "Dosemealti", "Alanya"],
+        ["Adana"] = ["Cukurova", "Seyhan", "Yuregir", "Sariçam", "Karatas"],
+        ["Konya"] = ["Selcuklu", "Meram", "Karatay", "Eregli", "Beysehir"],
+        ["Gaziantep"] = ["Sahinbey", "Sehitkamil", "Oguzeli", "Nizip", "Islahiye"],
+        ["Kocaeli"] = ["Izmit", "Gebze", "Basiskele", "Derince", "Golcuk"],
+        ["Mersin"] = ["Mezitli", "Yenisehir", "Toroslar", "Tarsus", "Erdemli"],
+        ["Kayseri"] = ["Melikgazi", "Kocasinan", "Talas", "Develi", "Yesilhisar"],
+        ["Eskisehir"] = ["Tepebasi", "Odunpazari", "Sivrihisar", "Inonu"],
+        ["Samsun"] = ["Atakum", "Ilkadim", "Canik", "Bafra", "Carsamba"],
+        ["Trabzon"] = ["Ortahisar", "Yomra", "Akcaabat", "Arsin", "Vakfikebir"],
+        ["Diyarbakir"] = ["Baglar", "Kayapinar", "Yenisehir", "Sur", "Bismil"],
+        ["Sanliurfa"] = ["Haliliye", "Eyyubiye", "Karakopru", "Siverek", "Viransehir"],
+        ["Erzurum"] = ["Yakutiye", "Palandoken", "Aziziye", "Horasan", "Oltu"],
+        ["Malatya"] = ["Battalgazi", "Yesilyurt", "Akcadag", "Darende", "Dogansehir"],
+        ["Manisa"] = ["Sehzadeler", "Yunusemre", "Turgutlu", "Salihli", "Akhisar"],
+        ["Balikesir"] = ["Ayvalik", "Edremit", "Bandirma", "Karesi", "Altieylul"],
+        ["Aydin"] = ["Efeler", "Kusadasi", "Didim", "Nazilli", "Soke"],
+        ["Mugla"] = ["Bodrum", "Fethiye", "Marmaris", "Milas", "Datca"],
+        ["Tekirdag"] = ["Suleymanpasa", "Corlu", "Cerkezkoy", "Malkara", "Saray"],
+        ["Sakarya"] = ["Adapazari", "Serdivan", "Akyazi", "Sapanca", "Karasu"],
+        ["Denizli"] = ["Pamukkale", "Merkezefendi", "Acipayam", "Saraykoy", "Tavas"],
+        ["Hatay"] = ["Antakya", "Defne", "Iskenderun", "Samandag", "Dortyol"],
+        ["Kahramanmaras"] = ["Onikisubat", "Dulkadiroglu", "Elbistan", "Afshin", "Turkoglu"],
+        ["Van"] = ["Ipekyolu", "Edremit", "Tusba", "Ercis", "Gevas"],
+        ["Ordu"] = ["Altinordu", "Unye", "Fatsa", "Persembe", "Kumru"],
+        ["Sivas"] = ["Merkez", "Susehri", "Yildizeli", "Sarkisla", "Zara"]
     };
 
-    public AppService(AppDataStore store)
+    public AppService(AppDbContext db)
     {
-        _store = store;
+        _db = db;
+        _db.Database.EnsureCreated();
+        EnsureSchemaUpgrades();
         Seed();
     }
 
@@ -38,134 +59,469 @@ public class AppService
     private static string BuildCity(string province, string district)
         => string.IsNullOrWhiteSpace(district) ? province : $"{province} / {district}";
 
-    private void Seed()
+    private static string NormalizeEmail(string email)
+        => (email ?? string.Empty).Trim();
+
+    private static string NormalizePassword(string password)
+        => (password ?? string.Empty).Trim();
+
+    private static string HashPassword(string password)
     {
-        if (_store.Users.Count > 0)
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
+        return Convert.ToHexString(bytes);
+    }
+
+    private bool VerifyPassword(string inputPassword, string storedHash)
+    {
+        if (string.IsNullOrWhiteSpace(storedHash))
         {
-            return;
+            return false;
         }
 
-        var admin = new User
+        var rawInput = inputPassword ?? string.Empty;
+        var hashedInput = HashPassword(rawInput);
+        if (string.Equals(hashedInput, storedHash, StringComparison.OrdinalIgnoreCase))
         {
-            Id = _store.UserSeq++,
-            FullName = "Sistem Yonetici",
-            Email = "admin@evimsensin.com",
-            Password = "Admin123!",
-            Role = UserRole.Admin
-        };
+            return true;
+        }
 
-        var sellerA = new User
+        var trimmedInput = NormalizePassword(rawInput);
+        if (!string.Equals(trimmedInput, rawInput, StringComparison.Ordinal))
         {
-            Id = _store.UserSeq++,
-            FullName = "Demo Satici",
-            Email = "musteri@evimsensin.com",
-            Password = "Musteri123!",
-            Role = UserRole.Customer
-        };
-
-        var sellerB = new User
-        {
-            Id = _store.UserSeq++,
-            FullName = "Satici Elif",
-            Email = "elif@evimsensin.com",
-            Password = "Satici123!",
-            Role = UserRole.Customer
-        };
-
-        _store.Users.Add(admin);
-        _store.Users.Add(sellerA);
-        _store.Users.Add(sellerB);
-
-        var provinces = _locations.Keys.ToList();
-        var propertyTypes = new[] { "Daire", "Villa", "Rezidans", "Mustakil Ev", "Dublex" };
-        var roomOptions = new[] { "1+1", "2+1", "3+1", "4+1" };
-        var heatOptions = new[] { "Kombi Dogalgaz", "Merkezi", "Yerden Isitma", "Klima" };
-
-        for (var i = 0; i < 15; i++)
-        {
-            var owner = i % 2 == 0 ? sellerA : sellerB;
-            var province = provinces[i];
-            var districts = _locations[province];
-            var district = districts[i % districts.Count];
-            var gross = 95 + (i * 11);
-            var net = gross - 12;
-
-            _store.Listings.Add(new Listing
+            var trimmedHash = HashPassword(trimmedInput);
+            if (string.Equals(trimmedHash, storedHash, StringComparison.OrdinalIgnoreCase))
             {
-                Id = _store.ListingSeq++,
-                Title = $"Seckin Portfoy Daire {i + 1}",
-                Description = "Sehirin prestijli lokasyonunda, ulasim ve sosyal imkanlara yakin, premium yasam odakli konut.",
-                Province = province,
-                District = district,
-                City = BuildCity(province, district),
-                PropertyType = propertyTypes[i % propertyTypes.Length],
-                RoomCount = roomOptions[i % roomOptions.Length],
-                GrossSquareMeters = gross,
-                NetSquareMeters = net,
-                BuildingAge = i % 12,
-                Floor = (i % 8) + 1,
-                TotalFloors = 10 + (i % 7),
-                BathroomCount = (i % 3) + 1,
-                HeatingType = heatOptions[i % heatOptions.Length],
-                Furnished = i % 2 == 0,
-                Balcony = true,
-                Elevator = true,
-                Parking = i % 2 == 0,
-                InSite = i % 3 != 0,
-                HasPool = i % 5 == 0,
-                MonthlyPrice = 18000 + (i * 1600),
-                Deposit = 25000 + (i * 1000),
-                Dues = 750 + (i * 45),
-                ImageUrl = $"/img/seed-{(i % 12) + 1}.jpeg",
-                OwnerUserId = owner.Id,
-                OwnerName = owner.FullName,
-                IsAdminRecommended = i % 4 == 0,
-                IsRented = false,
-                CreatedAt = DateTime.UtcNow.AddDays(-i)
-            });
+                return true;
+            }
+        }
+
+        // Legacy compatibility: older records may still contain plaintext passwords.
+        return string.Equals(rawInput, storedHash, StringComparison.Ordinal)
+            || string.Equals(trimmedInput, storedHash, StringComparison.Ordinal);
+    }
+
+    private void EnsureSchemaUpgrades()
+    {
+        // Lightweight compatibility upgrade for existing SQLite files without migrations.
+        TryExec("ALTER TABLE Messages ADD COLUMN ImageUrl TEXT NOT NULL DEFAULT '';");
+        TryExec("ALTER TABLE Messages ADD COLUMN IsDeleted INTEGER NOT NULL DEFAULT 0;");
+        TryExec("ALTER TABLE Messages ADD COLUMN IsEdited INTEGER NOT NULL DEFAULT 0;");
+        TryExec("ALTER TABLE Messages ADD COLUMN EditedAt TEXT NULL;");
+        TryExec("ALTER TABLE Listings ADD COLUMN ImageGalleryJson TEXT NOT NULL DEFAULT '[]';");
+        TryExec("ALTER TABLE Users ADD COLUMN PhoneNumber TEXT NOT NULL DEFAULT '';");
+        TryExec("ALTER TABLE Listings ADD COLUMN ListingPurpose TEXT NOT NULL DEFAULT 'Kiralik';");
+        TryExec("ALTER TABLE Listings ADD COLUMN IsDailyRecommended INTEGER NOT NULL DEFAULT 0;");
+        TryExec("""
+            CREATE TABLE IF NOT EXISTS Ratings (
+                Id INTEGER NOT NULL CONSTRAINT PK_Ratings PRIMARY KEY AUTOINCREMENT,
+                ListingId INTEGER NOT NULL,
+                SellerUserId INTEGER NOT NULL,
+                RenterUserId INTEGER NOT NULL,
+                ListingScore INTEGER NOT NULL,
+                SellerScore INTEGER NOT NULL,
+                Comment TEXT NOT NULL DEFAULT '',
+                CreatedAt TEXT NOT NULL
+            );
+            """);
+        TryExec("CREATE UNIQUE INDEX IF NOT EXISTS IX_Ratings_Listing_Renter ON Ratings(ListingId, RenterUserId);");
+    }
+
+    private void TryExec(string sql)
+    {
+        try
+        {
+            _db.Database.ExecuteSqlRaw(sql);
+        }
+        catch
+        {
+            // Existing column or legacy DB edge-case: ignore and keep app running.
+        }
+    }
+
+    private void Seed()
+    {
+        var admin = EnsureSeedUser(
+            "Sistem Yonetici",
+            "admin@Evimsensin.com",
+            "Admin123!",
+            UserRole.Admin,
+            "Platform yonetimi ve kalite kontrol.",
+            "/img/seed-10.jpeg");
+
+        var sellerA = EnsureSeedUser(
+            "Demo Satici",
+            "musteri@Evimsensin.com",
+            "Musteri123!",
+            UserRole.Customer,
+            "Bosphorus bolgesinde premium kiralik portfoy yonetiyorum.",
+            "/img/seed-8.jpeg");
+
+        var sellerB = EnsureSeedUser(
+            "Satici Elif",
+            "elif@Evimsensin.com",
+            "Satici123!",
+            UserRole.Customer,
+            "Modern residence ve deniz manzarali ilanlar.",
+            "/img/seed-9.jpeg");
+
+        EnsureDemoListings([sellerA, sellerB], admin.Id);
+        _db.SaveChanges();
+    }
+
+    private User EnsureSeedUser(
+        string fullName,
+        string email,
+        string password,
+        UserRole role,
+        string bio,
+        string imageUrl,
+        string phoneNumber = "05000000000")
+    {
+        var existing = _db.Users
+            .AsEnumerable()
+            .FirstOrDefault(x => string.Equals(NormalizeEmail(x.Email), NormalizeEmail(email), StringComparison.OrdinalIgnoreCase));
+
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var user = new User
+        {
+            FullName = fullName,
+            Email = NormalizeEmail(email),
+            PhoneNumber = phoneNumber,
+            Password = HashPassword(password),
+            Role = role,
+            Bio = bio,
+            ProfileImageUrl = imageUrl,
+            IsSellerApproved = true
+        };
+
+        _db.Users.Add(user);
+        _db.SaveChanges();
+        return user;
+    }
+
+    private void EnsureDemoListings(List<User> owners, int adminUserId)
+    {
+        if (owners.Count == 0) return;
+
+        var propertyTypes = new[] { "Daire", "Villa", "Rezidans", "Mustakil Ev", "Dublex" };
+        var roomOptions = new[] { "1+1", "2+1", "3+1", "4+1", "5+1" };
+        var heatOptions = new[] { "Kombi Dogalgaz", "Merkezi", "Yerden Isitma", "Klima", "Isi Pompasi" };
+        var descriptionTemplates = new[]
+        {
+            "Sessiz sokakta, gun boyu isik alan planli bir yasam alani sunar.",
+            "Toplu ulasima yurume mesafesinde, yeni mutfak ve yenilenmis banyoya sahip.",
+            "Site icerisinde guvenlikli giris, sosyal alan ve cocuk parki avantajlari sunar.",
+            "Geniş salonu, kullanisli odalari ve ferah balkonu ile aile yasamina uygundur.",
+            "Market, okul ve hastane aksina yakin konumda konforlu bir kiralik secenektir.",
+            "Modern cepheli binada, yuksek kira potansiyelli merkezi bir konumda yer alir.",
+            "Acik otopark, asansor ve aidat dengesine sahip duzenli bir site dairesidir.",
+            "Manzaraya acilan pencereleri ve depolama alani kuvvetli planiyla one cikar.",
+            "Yeni boya, bakimli parkeler ve genis mutfakla tasinmaya hazir durumdadir.",
+            "Sakin komsuluk yapisi ve ulasim kolayligi ile uzun sureli kiralama icin idealdir."
+        };
+        var lifestyleNotes = new[]
+        {
+            "Yakinda semt pazari ve butik kahve noktalarina erisim bulunur.",
+            "Sahil hattina kisa surus mesafesiyle hafta sonu yasami destekler.",
+            "Bolgede artan yeni proje yatirimlari kiralama talebini guclendiriyor.",
+            "Yakin cevrede spor salonu, eczane ve market zincirleri yer aliyor.",
+            "Metro ve ana arter baglantisi sayesinde is merkezlerine ulasim hizlidir."
+        };
+
+        var cityIndex = 0;
+        var listingIndex = 0;
+
+        foreach (var city in _locations)
+        {
+            var districtIndex = 0;
+            foreach (var district in city.Value)
+            {
+                var type = propertyTypes[(cityIndex + districtIndex) % propertyTypes.Length];
+                var room = roomOptions[(listingIndex + districtIndex) % roomOptions.Length];
+                var title = $"Demo En Iyi Ev - {district} {type}";
+
+                if (_db.Listings.Any(x => x.Title == title))
+                {
+                    districtIndex++;
+                    listingIndex++;
+                    continue;
+                }
+
+                var owner = owners[(cityIndex + districtIndex) % owners.Count];
+                var gross = 90 + ((listingIndex * 7) % 95);
+                var net = Math.Max(60, gross - 14);
+                var monthlyPrice = 16000 + (cityIndex * 900) + (districtIndex * 1200) + ((listingIndex % 6) * 750);
+                var deposit = monthlyPrice * 1.4m;
+                var dues = 600 + ((listingIndex % 9) * 85);
+                var desc = $"{descriptionTemplates[listingIndex % descriptionTemplates.Length]} " +
+                           $"{district} bolgesinde konumlanan ilan, {lifestyleNotes[(listingIndex + 2) % lifestyleNotes.Length]}";
+
+                var imageA = $"/img/seed-{(listingIndex % 12) + 1}.jpeg";
+                var imageB = $"/img/seed-{((listingIndex + 1) % 12) + 1}.jpeg";
+                var imageC = $"/img/seed-{((listingIndex + 2) % 12) + 1}.jpeg";
+
+                _db.Listings.Add(new Listing
+                {
+                    Title = title,
+                    Description = desc,
+                    Province = city.Key,
+                    District = district,
+                    City = BuildCity(city.Key, district),
+                    PropertyType = type,
+                    ListingPurpose = listingIndex % 3 == 0 ? "Satilik" : "Kiralik",
+                    RoomCount = room,
+                    GrossSquareMeters = gross,
+                    NetSquareMeters = net,
+                    BuildingAge = (listingIndex + 3) % 18,
+                    Floor = (listingIndex % 10) + 1,
+                    TotalFloors = 10 + ((listingIndex + 2) % 8),
+                    BathroomCount = (listingIndex % 3) + 1,
+                    HeatingType = heatOptions[listingIndex % heatOptions.Length],
+                    Furnished = listingIndex % 2 == 0,
+                    Balcony = listingIndex % 4 != 1,
+                    Elevator = true,
+                    Parking = listingIndex % 3 == 0,
+                    InSite = listingIndex % 5 != 0,
+                    HasPool = listingIndex % 9 == 0,
+                    MonthlyPrice = monthlyPrice,
+                    Deposit = deposit,
+                    Dues = dues,
+                    ImageUrl = imageA,
+                    ImageGalleryJson = JsonSerializer.Serialize(new[] { imageA, imageB, imageC }),
+                    OwnerUserId = owner.Id,
+                    OwnerName = owner.FullName,
+                    IsDailyRecommended = false,
+                    IsAdminRecommended = listingIndex % 7 == 0 && owner.Id != adminUserId,
+                    IsRented = false,
+                    CreatedAt = DateTime.UtcNow.AddDays(-listingIndex)
+                });
+
+                districtIndex++;
+                listingIndex++;
+            }
+
+            cityIndex++;
         }
     }
 
     public User? Login(string email, string password)
-        => _store.Users.FirstOrDefault(x => x.Email.Equals(email, StringComparison.OrdinalIgnoreCase) && x.Password == password);
-
-    public User Register(string fullName, string email, string password, UserRole role)
     {
-        if (_store.Users.Any(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
+        var normalizedEmail = NormalizeEmail(email);
+        var user = _db.Users
+            .AsEnumerable()
+            .FirstOrDefault(x => string.Equals(NormalizeEmail(x.Email), normalizedEmail, StringComparison.OrdinalIgnoreCase));
+        if (user is null) return null;
+        var valid = VerifyPassword(password, user.Password);
+        if (!valid) return null;
+
+        var hashedInput = HashPassword(NormalizePassword(password));
+        if (!string.Equals(user.Password, hashedInput, StringComparison.OrdinalIgnoreCase))
+        {
+            user.Password = hashedInput;
+            _db.SaveChanges();
+        }
+
+        return user;
+    }
+
+    public User Register(string fullName, string email, string phoneNumber, string password)
+    {
+        email = NormalizeEmail(email);
+        password = NormalizePassword(password);
+        if (_db.Users.AsEnumerable().Any(u => string.Equals(NormalizeEmail(u.Email), email, StringComparison.OrdinalIgnoreCase)))
         {
             throw new InvalidOperationException("Bu e-posta zaten kayitli.");
         }
 
         var user = new User
         {
-            Id = _store.UserSeq++,
             FullName = fullName,
             Email = email,
-            Password = password,
-            Role = role
+            PhoneNumber = (phoneNumber ?? string.Empty).Trim(),
+            Password = HashPassword(password),
+            Role = UserRole.Customer,
+            Bio = string.Empty,
+            ProfileImageUrl = "/img/seed-7.jpeg",
+            IsSellerApproved = true
         };
 
-        _store.Users.Add(user);
+        _db.Users.Add(user);
+        _db.SaveChanges();
         return user;
     }
 
-    public User? GetUser(int id) => _store.Users.FirstOrDefault(x => x.Id == id);
+    public User? GetUser(int id) => _db.Users.FirstOrDefault(x => x.Id == id);
+    public User? GetUserByEmail(string email)
+    {
+        var normalized = NormalizeEmail(email);
+        return _db.Users
+            .AsEnumerable()
+            .FirstOrDefault(x => string.Equals(NormalizeEmail(x.Email), normalized, StringComparison.OrdinalIgnoreCase));
+    }
 
-    public List<Listing> GetListings() => _store.Listings.OrderByDescending(x => x.CreatedAt).ToList();
-    public Listing? GetListing(int id) => _store.Listings.FirstOrDefault(x => x.Id == id);
+    public List<User> GetUsers() => _db.Users.OrderBy(x => x.Role).ThenBy(x => x.FullName).ToList();
+    public List<User> GetNonAdminUsers()
+        => _db.Users
+            .Where(x => x.Role != UserRole.Admin)
+            .OrderBy(x => x.FullName)
+            .ToList();
+
+    public bool CanCreateListing(int userId)
+    {
+        var user = GetUser(userId);
+        return user is not null;
+    }
+
+    public void UpdateUserProfile(int userId, string fullName, string bio, string? profileImageUrl)
+    {
+        var user = GetUser(userId) ?? throw new InvalidOperationException("Kullanici bulunamadi.");
+        user.FullName = fullName.Trim();
+        user.Bio = bio.Trim();
+
+        if (!string.IsNullOrWhiteSpace(profileImageUrl))
+        {
+            user.ProfileImageUrl = profileImageUrl.Trim();
+        }
+
+        foreach (var listing in _db.Listings.Where(x => x.OwnerUserId == userId))
+        {
+            listing.OwnerName = user.FullName;
+        }
+
+        _db.SaveChanges();
+    }
+
+    public void UpdateUserByAdmin(UserAdminEditViewModel model)
+    {
+        var user = GetUser(model.Id) ?? throw new InvalidOperationException("Kullanici bulunamadi.");
+        model.Email = NormalizeEmail(model.Email);
+        if (_db.Users
+            .AsEnumerable()
+            .Any(x => x.Id != model.Id && string.Equals(NormalizeEmail(x.Email), model.Email, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException("Bu e-posta baska bir kullanici tarafindan kullaniliyor.");
+        }
+
+        user.FullName = model.FullName.Trim();
+        user.Email = model.Email;
+        user.Role = model.Role;
+        user.Bio = model.Bio.Trim();
+        user.IsSellerApproved = model.Role == UserRole.Admin || model.IsSellerApproved;
+
+        if (!string.IsNullOrWhiteSpace(model.ProfileImageUrl))
+        {
+            user.ProfileImageUrl = model.ProfileImageUrl.Trim();
+        }
+
+        foreach (var listing in _db.Listings.Where(x => x.OwnerUserId == user.Id))
+        {
+            listing.OwnerName = user.FullName;
+        }
+
+        _db.SaveChanges();
+    }
+
+    public void SetSellerApproval(int userId, bool approved)
+    {
+        var user = GetUser(userId) ?? throw new InvalidOperationException("Kullanici bulunamadi.");
+        if (user.Role == UserRole.Admin)
+        {
+            user.IsSellerApproved = true;
+        }
+        else
+        {
+            user.IsSellerApproved = approved;
+        }
+
+        _db.SaveChanges();
+    }
+
+    public void SetAdminRole(int userId, bool makeAdmin)
+    {
+        var user = GetUser(userId) ?? throw new InvalidOperationException("Kullanici bulunamadi.");
+        if (makeAdmin)
+        {
+            user.Role = UserRole.Admin;
+            user.IsSellerApproved = true;
+        }
+        else
+        {
+            if (user.Role == UserRole.Admin)
+            {
+                var adminCount = _db.Users.Count(x => x.Role == UserRole.Admin);
+                if (adminCount <= 1)
+                {
+                    throw new InvalidOperationException("Son adminin rolu kaldirilamaz.");
+                }
+            }
+
+            user.Role = UserRole.Customer;
+        }
+
+        _db.SaveChanges();
+    }
+
+    public void DeleteUser(int userId)
+    {
+        var user = GetUser(userId);
+        if (user is null) return;
+
+        if (user.Role == UserRole.Admin)
+        {
+            var adminCount = _db.Users.Count(x => x.Role == UserRole.Admin);
+            if (adminCount <= 1)
+            {
+                throw new InvalidOperationException("Son admin silinemez.");
+            }
+        }
+
+        var listingIds = _db.Listings.Where(x => x.OwnerUserId == userId).Select(x => x.Id).ToList();
+        foreach (var listingId in listingIds)
+        {
+            DeleteListing(listingId);
+        }
+
+        var comments = _db.Comments.Where(x => x.AuthorName == user.FullName).ToList();
+        _db.Comments.RemoveRange(comments);
+
+        var rentals = _db.Rentals.Where(x => x.RenterUserId == userId).ToList();
+        _db.Rentals.RemoveRange(rentals);
+
+        var ratings = _db.Ratings.Where(x => x.RenterUserId == userId || x.SellerUserId == userId).ToList();
+        _db.Ratings.RemoveRange(ratings);
+
+        var messages = _db.Messages.Where(x => x.FromUserId == userId || x.ToUserId == userId).ToList();
+        _db.Messages.RemoveRange(messages);
+
+        var offers = _db.Offers.Where(x => x.FromUserId == userId || x.ToOwnerUserId == userId).ToList();
+        _db.Offers.RemoveRange(offers);
+
+        _db.Users.Remove(user);
+        _db.SaveChanges();
+    }
+
+    public List<Listing> GetListings() => _db.Listings.OrderByDescending(x => x.CreatedAt).ToList();
+
+    public Listing? GetListing(int id) => _db.Listings.FirstOrDefault(x => x.Id == id);
 
     public List<Listing> GetListingsByOwner(int ownerUserId)
-        => _store.Listings.Where(x => x.OwnerUserId == ownerUserId).OrderByDescending(x => x.CreatedAt).ToList();
+        => _db.Listings.Where(x => x.OwnerUserId == ownerUserId).OrderByDescending(x => x.CreatedAt).ToList();
 
     public List<Comment> GetCommentsByListing(int listingId)
-        => _store.Comments.Where(x => x.ListingId == listingId).OrderByDescending(x => x.CreatedAt).ToList();
+        => _db.Comments.Where(x => x.ListingId == listingId).OrderByDescending(x => x.CreatedAt).ToList();
 
     public Listing CreateListing(Listing listing)
     {
-        listing.Id = _store.ListingSeq++;
+        _ = GetUser(listing.OwnerUserId) ?? throw new InvalidOperationException("Kullanici bulunamadi.");
+
         listing.City = BuildCity(listing.Province, listing.District);
         listing.CreatedAt = DateTime.UtcNow;
-        _store.Listings.Add(listing);
+        _db.Listings.Add(listing);
+        _db.SaveChanges();
         return listing;
     }
 
@@ -178,6 +534,7 @@ public class AppService
         existing.District = listing.District;
         existing.City = BuildCity(listing.Province, listing.District);
         existing.PropertyType = listing.PropertyType;
+        existing.ListingPurpose = listing.ListingPurpose;
         existing.RoomCount = listing.RoomCount;
         existing.GrossSquareMeters = listing.GrossSquareMeters;
         existing.NetSquareMeters = listing.NetSquareMeters;
@@ -196,7 +553,76 @@ public class AppService
         existing.Deposit = listing.Deposit;
         existing.Dues = listing.Dues;
         existing.ImageUrl = listing.ImageUrl;
+        existing.ImageGalleryJson = string.IsNullOrWhiteSpace(listing.ImageGalleryJson) ? "[]" : listing.ImageGalleryJson;
         existing.IsAdminRecommended = listing.IsAdminRecommended;
+        _db.SaveChanges();
+    }
+
+    public List<string> GetListingImageGallery(Listing listing)
+    {
+        var images = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(listing.ImageGalleryJson))
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<List<string>>(listing.ImageGalleryJson) ?? [];
+                images.AddRange(parsed.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()));
+            }
+            catch
+            {
+                // Ignore invalid legacy JSON.
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(listing.ImageUrl))
+        {
+            images.Insert(0, listing.ImageUrl.Trim());
+        }
+
+        return images
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    public string BuildGalleryJson(IEnumerable<string> imagePaths)
+    {
+        var list = imagePaths
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        return JsonSerializer.Serialize(list);
+    }
+
+    public bool ToggleAdminRecommendation(int listingId)
+    {
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        listing.IsAdminRecommended = !listing.IsAdminRecommended;
+        _db.SaveChanges();
+        return listing.IsAdminRecommended;
+    }
+
+    public bool ToggleDailyRecommendation(int listingId, int maxCount = 4)
+    {
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        if (listing.IsDailyRecommended)
+        {
+            listing.IsDailyRecommended = false;
+            _db.SaveChanges();
+            return false;
+        }
+
+        var selectedCount = _db.Listings.Count(x => x.IsDailyRecommended);
+        if (selectedCount >= maxCount)
+        {
+            throw new InvalidOperationException($"Gunun tavsiye edilen evleri en fazla {maxCount} ilan olabilir.");
+        }
+
+        listing.IsDailyRecommended = true;
+        _db.SaveChanges();
+        return true;
     }
 
     public void DeleteListing(int id)
@@ -204,33 +630,42 @@ public class AppService
         var listing = GetListing(id);
         if (listing is null) return;
 
-        _store.Listings.Remove(listing);
-        _store.Comments.RemoveAll(c => c.ListingId == id);
-        _store.Rentals.RemoveAll(r => r.ListingId == id);
-        _store.Offers.RemoveAll(o => o.ListingId == id);
+        var comments = _db.Comments.Where(c => c.ListingId == id).ToList();
+        var rentals = _db.Rentals.Where(r => r.ListingId == id).ToList();
+        var offers = _db.Offers.Where(o => o.ListingId == id).ToList();
+        var ratings = _db.Ratings.Where(r => r.ListingId == id).ToList();
+
+        _db.Comments.RemoveRange(comments);
+        _db.Rentals.RemoveRange(rentals);
+        _db.Offers.RemoveRange(offers);
+        _db.Ratings.RemoveRange(ratings);
+        _db.Listings.Remove(listing);
+        _db.SaveChanges();
     }
 
     public Comment AddComment(int listingId, string author, string content)
     {
         var comment = new Comment
         {
-            Id = _store.CommentSeq++,
             ListingId = listingId,
             AuthorName = author,
             Content = content,
             CreatedAt = DateTime.UtcNow
         };
-        _store.Comments.Add(comment);
+        _db.Comments.Add(comment);
+        _db.SaveChanges();
         return comment;
     }
 
     public void DeleteComment(int commentId)
     {
-        var comment = _store.Comments.FirstOrDefault(c => c.Id == commentId);
-        if (comment is not null) _store.Comments.Remove(comment);
+        var comment = _db.Comments.FirstOrDefault(c => c.Id == commentId);
+        if (comment is null) return;
+        _db.Comments.Remove(comment);
+        _db.SaveChanges();
     }
 
-    public Rental Rent(int listingId, int renterId, string cardLast4)
+    public Rental Rent(int listingId, int renterId, string cardLast4, int? approvedOfferId = null)
     {
         var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
 
@@ -246,16 +681,17 @@ public class AppService
 
         var rental = new Rental
         {
-            Id = _store.RentalSeq++,
             ListingId = listingId,
             RenterUserId = renterId,
+            ApprovedOfferId = approvedOfferId,
             PaymentCardLast4 = cardLast4,
             RentedAt = DateTime.UtcNow
         };
 
         listing.IsRented = true;
         listing.RentedAt = rental.RentedAt;
-        _store.Rentals.Add(rental);
+        _db.Rentals.Add(rental);
+        _db.SaveChanges();
         return rental;
     }
 
@@ -275,17 +711,61 @@ public class AppService
 
         var offer = new Offer
         {
-            Id = _store.OfferSeq++,
             ListingId = listingId,
             FromUserId = fromUserId,
             ToOwnerUserId = listing.OwnerUserId,
             Amount = amount,
             Note = note,
+            Type = OfferType.PriceOffer,
             Status = OfferStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
 
-        _store.Offers.Add(offer);
+        _db.Offers.Add(offer);
+        _db.SaveChanges();
+        return offer;
+    }
+
+    public Offer CreateRentalRequest(int listingId, int fromUserId, string cardLast4)
+    {
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+
+        if (listing.OwnerUserId == fromUserId)
+        {
+            throw new InvalidOperationException("Satici kendi ilanini kiralayamaz.");
+        }
+
+        if (listing.IsRented)
+        {
+            throw new InvalidOperationException("Bu ilan zaten kiralandi.");
+        }
+
+        var hasPending = _db.Offers.Any(o =>
+            o.ListingId == listingId &&
+            o.FromUserId == fromUserId &&
+            o.Type == OfferType.RentalRequest &&
+            o.Status == OfferStatus.Pending);
+
+        if (hasPending)
+        {
+            throw new InvalidOperationException("Bu ilan icin zaten bekleyen kiralama talebiniz var.");
+        }
+
+        var offer = new Offer
+        {
+            ListingId = listingId,
+            FromUserId = fromUserId,
+            ToOwnerUserId = listing.OwnerUserId,
+            Amount = listing.MonthlyPrice,
+            Note = "Kiralama talebi",
+            Type = OfferType.RentalRequest,
+            PaymentCardLast4 = cardLast4,
+            Status = OfferStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.Offers.Add(offer);
+        _db.SaveChanges();
         return offer;
     }
 
@@ -294,16 +774,17 @@ public class AppService
         var listing = GetListing(listingId);
         if (listing is null) return [];
 
-        return _store.Offers
+        return _db.Offers
             .Where(o => o.ListingId == listingId)
             .OrderByDescending(o => o.CreatedAt)
             .Select(o => new OfferDisplayViewModel
             {
                 OfferId = o.Id,
                 ListingTitle = listing.Title,
-                FromUserName = GetUser(o.FromUserId)?.FullName ?? "Bilinmeyen",
+                FromUserName = _db.Users.Where(u => u.Id == o.FromUserId).Select(u => u.FullName).FirstOrDefault() ?? "Bilinmeyen",
                 Amount = o.Amount,
                 Note = o.Note,
+                Type = o.Type,
                 Status = o.Status,
                 CreatedAt = o.CreatedAt
             })
@@ -312,30 +793,121 @@ public class AppService
 
     public List<OfferDisplayViewModel> GetIncomingOffers(int ownerUserId)
     {
-        return _store.Offers
+        return _db.Offers
             .Where(o => o.ToOwnerUserId == ownerUserId)
             .OrderByDescending(o => o.CreatedAt)
             .Select(o => new OfferDisplayViewModel
             {
                 OfferId = o.Id,
-                ListingTitle = GetListing(o.ListingId)?.Title ?? "Ilan",
-                FromUserName = GetUser(o.FromUserId)?.FullName ?? "Bilinmeyen",
+                ListingTitle = _db.Listings.Where(l => l.Id == o.ListingId).Select(l => l.Title).FirstOrDefault() ?? "Ilan",
+                FromUserName = _db.Users.Where(u => u.Id == o.FromUserId).Select(u => u.FullName).FirstOrDefault() ?? "Bilinmeyen",
                 Amount = o.Amount,
                 Note = o.Note,
+                Type = o.Type,
                 Status = o.Status,
                 CreatedAt = o.CreatedAt
             })
             .ToList();
     }
 
-    public void UpdateOfferStatus(int ownerUserId, int offerId, OfferStatus status)
+    public Offer UpdateOfferStatus(int ownerUserId, int offerId, OfferStatus status)
     {
-        var offer = _store.Offers.FirstOrDefault(o => o.Id == offerId);
+        var offer = _db.Offers.FirstOrDefault(o => o.Id == offerId);
         if (offer is null) throw new InvalidOperationException("Teklif bulunamadi.");
         if (offer.ToOwnerUserId != ownerUserId) throw new InvalidOperationException("Bu teklifi yonetme yetkiniz yok.");
-        if (offer.Status != OfferStatus.Pending) return;
+        if (offer.Status != OfferStatus.Pending) return offer;
 
         offer.Status = status;
+
+        if (status == OfferStatus.Accepted && offer.Type == OfferType.RentalRequest)
+        {
+            if (string.IsNullOrWhiteSpace(offer.PaymentCardLast4))
+            {
+                throw new InvalidOperationException("Kiralama talebinde kart bilgisi bulunamadi.");
+            }
+
+            Rent(offer.ListingId, offer.FromUserId, offer.PaymentCardLast4, offer.Id);
+
+            var others = _db.Offers.Where(x =>
+                x.ListingId == offer.ListingId &&
+                x.Id != offer.Id &&
+                x.Status == OfferStatus.Pending).ToList();
+
+            foreach (var pending in others)
+            {
+                pending.Status = OfferStatus.Rejected;
+            }
+        }
+
+        _db.SaveChanges();
+        return offer;
+    }
+
+    public bool HasUserRentedListing(int listingId, int userId)
+        => _db.Rentals.Any(x => x.ListingId == listingId && x.RenterUserId == userId);
+
+    public bool CanUserRateListing(int listingId, int userId)
+    {
+        var listing = GetListing(listingId);
+        if (listing is null) return false;
+        if (listing.OwnerUserId == userId) return false;
+        return HasUserRentedListing(listingId, userId);
+    }
+
+    public Rating? GetUserRating(int listingId, int userId)
+        => _db.Ratings.FirstOrDefault(x => x.ListingId == listingId && x.RenterUserId == userId);
+
+    public void UpsertRating(int listingId, int renterUserId, int listingScore, int sellerScore, string comment)
+    {
+        var listing = GetListing(listingId) ?? throw new InvalidOperationException("Ilan bulunamadi.");
+        if (!CanUserRateListing(listingId, renterUserId))
+        {
+            throw new InvalidOperationException("Puanlama icin ilani kiralamis olmaniz gerekir.");
+        }
+
+        if (listingScore is < 1 or > 5 || sellerScore is < 1 or > 5)
+        {
+            throw new InvalidOperationException("Puanlar 1 ile 5 arasinda olmalidir.");
+        }
+
+        var existing = GetUserRating(listingId, renterUserId);
+        if (existing is null)
+        {
+            existing = new Rating
+            {
+                ListingId = listingId,
+                SellerUserId = listing.OwnerUserId,
+                RenterUserId = renterUserId,
+                ListingScore = listingScore,
+                SellerScore = sellerScore,
+                Comment = (comment ?? string.Empty).Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.Ratings.Add(existing);
+        }
+        else
+        {
+            existing.ListingScore = listingScore;
+            existing.SellerScore = sellerScore;
+            existing.Comment = (comment ?? string.Empty).Trim();
+            existing.CreatedAt = DateTime.UtcNow;
+        }
+
+        _db.SaveChanges();
+    }
+
+    public (double average, int count) GetListingRatingSummary(int listingId)
+    {
+        var list = _db.Ratings.Where(x => x.ListingId == listingId).ToList();
+        if (list.Count == 0) return (0, 0);
+        return (Math.Round(list.Average(x => x.ListingScore), 1), list.Count);
+    }
+
+    public (double average, int count) GetSellerRatingSummary(int sellerUserId)
+    {
+        var list = _db.Ratings.Where(x => x.SellerUserId == sellerUserId).ToList();
+        if (list.Count == 0) return (0, 0);
+        return (Math.Round(list.Average(x => x.SellerScore), 1), list.Count);
     }
 
     public SellerDashboardViewModel GetSellerDashboard(int ownerUserId)
@@ -361,7 +933,7 @@ public class AppService
 
     public List<InboxConversationItemViewModel> GetInboxConversations(int currentUserId)
     {
-        var messages = _store.Messages
+        var messages = _db.Messages
             .Where(m => m.FromUserId == currentUserId || m.ToUserId == currentUserId)
             .ToList();
 
@@ -369,19 +941,24 @@ public class AppService
             .GroupBy(m => m.FromUserId == currentUserId ? m.ToUserId : m.FromUserId)
             .Select(g =>
             {
-                var partner = _store.Users.FirstOrDefault(u => u.Id == g.Key);
+                var partner = _db.Users.FirstOrDefault(u => u.Id == g.Key);
                 if (partner is null)
                 {
                     return null;
                 }
 
                 var last = g.OrderByDescending(x => x.CreatedAt).First();
+                var lastPreview = last.IsDeleted
+                    ? "Bu mesaj silindi."
+                    : (!string.IsNullOrWhiteSpace(last.Content)
+                        ? last.Content
+                        : (!string.IsNullOrWhiteSpace(last.ImageUrl) ? "[Gorsel]" : ""));
                 return new InboxConversationItemViewModel
                 {
                     PartnerUserId = partner.Id,
                     PartnerName = partner.FullName,
                     PartnerRole = partner.Role,
-                    LastMessage = last.Content,
+                    LastMessage = lastPreview,
                     LastMessageAt = last.CreatedAt,
                     LastFromMe = last.FromUserId == currentUserId,
                     UnreadCount = g.Count(x => x.ToUserId == currentUserId && !x.IsRead)
@@ -397,39 +974,90 @@ public class AppService
 
     public List<Message> GetConversation(int userA, int userB)
     {
-        return _store.Messages
+        return _db.Messages
             .Where(m => (m.FromUserId == userA && m.ToUserId == userB) || (m.FromUserId == userB && m.ToUserId == userA))
             .OrderBy(m => m.CreatedAt)
             .ToList();
     }
 
     public int GetUnreadCount(int currentUserId)
-        => _store.Messages.Count(m => m.ToUserId == currentUserId && !m.IsRead);
+        => _db.Messages.Count(m => m.ToUserId == currentUserId && !m.IsRead);
 
     public Message? GetLatestUnreadMessage(int currentUserId)
-        => _store.Messages
+        => _db.Messages
             .Where(m => m.ToUserId == currentUserId && !m.IsRead)
             .OrderByDescending(m => m.CreatedAt)
             .FirstOrDefault();
 
     public void MarkConversationAsRead(int currentUserId, int withUserId)
     {
-        foreach (var m in _store.Messages.Where(m => m.FromUserId == withUserId && m.ToUserId == currentUserId && !m.IsRead))
+        var list = _db.Messages.Where(m => m.FromUserId == withUserId && m.ToUserId == currentUserId && !m.IsRead).ToList();
+        foreach (var m in list)
         {
             m.IsRead = true;
         }
+
+        _db.SaveChanges();
     }
 
-    public void SendMessage(int fromUserId, int toUserId, string content)
+    public Message SendMessage(int fromUserId, int toUserId, string content, string? imageUrl = null)
     {
-        _store.Messages.Add(new Message
+        var message = new Message
         {
-            Id = _store.MessageSeq++,
             FromUserId = fromUserId,
             ToUserId = toUserId,
             Content = content.Trim(),
+            ImageUrl = imageUrl?.Trim() ?? string.Empty,
             IsRead = false,
             CreatedAt = DateTime.UtcNow
-        });
+        };
+        _db.Messages.Add(message);
+        _db.SaveChanges();
+        return message;
+    }
+
+    public void EditMessage(int messageId, int currentUserId, string newContent)
+    {
+        var message = _db.Messages.FirstOrDefault(m => m.Id == messageId)
+            ?? throw new InvalidOperationException("Mesaj bulunamadi.");
+
+        if (message.FromUserId != currentUserId)
+        {
+            throw new InvalidOperationException("Bu mesaji duzenleme yetkiniz yok.");
+        }
+
+        if (message.IsDeleted)
+        {
+            throw new InvalidOperationException("Silinmis mesaj duzenlenemez.");
+        }
+
+        var nextContent = (newContent ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(nextContent))
+        {
+            throw new InvalidOperationException("Mesaj bos birakilamaz.");
+        }
+
+        message.Content = nextContent;
+        message.IsEdited = true;
+        message.EditedAt = DateTime.UtcNow;
+        _db.SaveChanges();
+    }
+
+    public void DeleteMessage(int messageId, int currentUserId)
+    {
+        var message = _db.Messages.FirstOrDefault(m => m.Id == messageId)
+            ?? throw new InvalidOperationException("Mesaj bulunamadi.");
+
+        if (message.FromUserId != currentUserId)
+        {
+            throw new InvalidOperationException("Bu mesaji silme yetkiniz yok.");
+        }
+
+        message.IsDeleted = true;
+        message.Content = string.Empty;
+        message.ImageUrl = string.Empty;
+        message.IsEdited = false;
+        message.EditedAt = DateTime.UtcNow;
+        _db.SaveChanges();
     }
 }

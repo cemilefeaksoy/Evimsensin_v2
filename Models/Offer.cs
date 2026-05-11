@@ -9,6 +9,12 @@ public enum OfferStatus
     Rejected = 2
 }
 
+public enum OfferType
+{
+    PriceOffer = 0,
+    RentalRequest = 1
+}
+
 public class Offer
 {
     public int Id { get; set; }
@@ -21,6 +27,9 @@ public class Offer
 
     [StringLength(600)]
     public string Note { get; set; } = string.Empty;
+
+    public OfferType Type { get; set; } = OfferType.PriceOffer;
+    public string PaymentCardLast4 { get; set; } = string.Empty;
 
     public OfferStatus Status { get; set; } = OfferStatus.Pending;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

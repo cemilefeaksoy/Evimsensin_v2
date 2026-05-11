@@ -54,12 +54,12 @@ public class RentalsController : Controller
         try
         {
             var last4 = model.CardNumber.Length >= 4 ? model.CardNumber[^4..] : "0000";
-            _appService.Rent(model.ListingId, userId.Value, last4);
+            _appService.CreateRentalRequest(model.ListingId, userId.Value, last4);
 
             _appService.SendMessage(userId.Value, listing.OwnerUserId,
-                $"Ilan kiralandi: {listing.Title} ilaniniz kiralandi. Tebrikler!");
+                $"Kiralama talebi: {listing.Title} ilani icin odeme adimi tamamlandi. Lutfen kabul/ret verin.");
 
-            TempData["Success"] = $"Odeme tamamlandi. {listing.Title} kiralama islemi basarili.";
+            TempData["Success"] = "Odeme bilgisi alindi. Talebiniz saticinin onayina gonderildi.";
         }
         catch (Exception ex)
         {
