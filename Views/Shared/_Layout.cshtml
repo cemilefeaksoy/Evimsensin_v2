@@ -32,8 +32,15 @@
     <header class="lux-header" id="luxHeader">
         <div class="header-left">
             <a asp-controller="Home" asp-action="Index" class="nav-link">ANASAYFA</a>
-            <a asp-controller="Listings" asp-action="Index" class="nav-link">EN IYI EVLER</a>
-            <a asp-controller="Listings" asp-action="Index" class="nav-link">LOKASYONLAR</a>
+            <a asp-controller="Listings" asp-action="Index" class="nav-link">ILANLAR</a>
+            @if (isLoggedIn && !isAdmin)
+            {
+                <a asp-controller="Listings" asp-action="MyListings" class="nav-link">ILANLARIM</a>
+            }
+            @if (isAdmin)
+            {
+                <a asp-controller="Admin" asp-action="Dashboard" class="nav-link">ADMIN</a>
+            }
         </div>
 
         <a class="brand-center" asp-controller="Home" asp-action="Index">

@@ -1,7 +1,11 @@
 @model List<Listing>
+@using Evimsensin.Models
 @{
     ViewData["Title"] = "Admin Panel";
     var users = ViewBag.Users as List<User> ?? new List<User>();
+    var searchUsers = ViewBag.SearchUsers as List<User> ?? new List<User>();
+    var searchListings = ViewBag.SearchListings as List<Listing> ?? new List<Listing>();
+    var activeTab = ViewBag.ActiveTab as string ?? "overview";
 }
 
 @if (TempData["Success"] is string success && !string.IsNullOrWhiteSpace(success))
@@ -13,91 +17,378 @@
     <section class="panel toast-inline danger">@error</section>
 }
 
-<section class="panel reveal-on-scroll" id="kullanici-yonetimi">
-    <div class="section-head slim">
-        <h2>Admin Yonetim Paneli</h2>
-        <p>Tum ilanlar, satıcı onaylari ve kullanici yonetimi burada.</p>
-    </div>
+<div class="admin-shell">
 
-    <div class="kpi-grid">
-        <article class="kpi-card"><h3>Toplam Ilan</h3><strong>@ViewBag.TotalListings</strong><span>Yayindaki ev adedi</span></article>
-        <article class="kpi-card"><h3>Toplam Kullanici</h3><strong>@ViewBag.TotalUsers</strong><span>Uye sayisi</span></article>
-        <article class="kpi-card"><h3>Bekleyen Satici</h3><strong>@ViewBag.PendingSellers</strong><span>Onay bekleyen</span></article>
-    </div>
-</section>
-
-<section class="panel reveal-on-scroll">
-    <h2>Kullanici Yonetimi</h2>
-    <div class="offers-table-wrap">
-        <table class="lux-table">
-            <thead>
-                <tr>
-                    <th>Kullanici</th>
-                    <th>E-posta</th>
-                    <th>Rol</th>
-                    <th>Satici Onayi</th>
-                    <th>Islem</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var u in users)
-            {
-                <tr>
-                    <td>@u.FullName</td>
-                    <td>@u.Email</td>
-                    <td>@u.Role</td>
-                    <td>@(u.IsSellerApproved ? "Onayli" : "Bekliyor")</td>
-                    <td>
-                        <div class="offer-actions">
-                            <a class="btn-edit" asp-action="EditUser" asp-route-id="@u.Id">Duzenle</a>
-                            @if (u.Role != UserRole.Admin)
-                            {
-                                <form asp-action="ToggleSellerApproval" method="post">
-                                    <input type="hidden" name="id" value="@u.Id" />
-                                    <button type="submit" class="btn-chat">@(u.IsSellerApproved ? "Onayi Kaldir" : "Onayla")</button>
-                                </form>
-                            }
-                            <form asp-action="ToggleAdminRole" method="post">
-                                <input type="hidden" name="id" value="@u.Id" />
-                                <button type="submit" class="btn-chat">@(u.Role == UserRole.Admin ? "Adminligi Kaldir" : "Admin Yap")</button>
-                            </form>
-                            <form asp-action="DeleteUser" method="post">
-                                <input type="hidden" name="id" value="@u.Id" />
-                                <button type="submit" class="btn-delete">Sil</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-</section>
-
-<section class="grid-cards">
-@foreach (var item in Model)
-{
-    <article class="card-premium tilt-card reveal-on-scroll">
-        <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
-            <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
-            @if (item.IsRented)
-            {
-                <span class="rented-overlay">KIRALANDI</span>
-            }
-        </a>
+    <div class="admin-hero">
         <div>
-            <h3>@item.Title @if (item.IsAdminRecommended) { <span class="badge-star">★ Admin Oneri</span> }</h3>
-            <p>@item.City</p>
-            <p><strong>@item.MonthlyPrice.ToString("N0") TL/ay</strong></p>
-            <p class="owner-pill">Ilan Sahibi: @item.OwnerName</p>
-            <div class="actions actions-pro">
-                <a class="btn-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@item.Id">Duzenle</a>
-                <form asp-controller="Listings" asp-action="ToggleAdminRecommendation" method="post">
-                    <input type="hidden" name="id" value="@item.Id" />
-                    <button type="submit" class="btn-chat">@(item.IsAdminRecommended ? "Oneriyi Kaldir" : "Admin Oner")</button>
-                </form>
+            <span class="studio-badge">Yonetim Merkezi</span>
+            <h1 class="admin-hero-title">Admin Paneli</h1>
+            <p class="studio-sub">Kullanicilar, ilanlar ve platform yonetimi tek ekranda.</p>
+        </div>
+        <div class="admin-kpi-row">
+            <div class="admin-kpi">
+                <span class="admin-kpi-val">@ViewBag.TotalListings</span>
+                <span class="admin-kpi-lbl">Toplam Ilan</span>
+            </div>
+            <div class="admin-kpi">
+                <span class="admin-kpi-val">@ViewBag.ActiveListings</span>
+                <span class="admin-kpi-lbl">Aktif</span>
+            </div>
+            <div class="admin-kpi">
+                <span class="admin-kpi-val">@ViewBag.RentedListings</span>
+                <span class="admin-kpi-lbl">Kiralandi</span>
+            </div>
+            <div class="admin-kpi">
+                <span class="admin-kpi-val">@ViewBag.TotalUsers</span>
+                <span class="admin-kpi-lbl">Kullanici</span>
+            </div>
+            <div class="admin-kpi @(((int)ViewBag.PendingSellers > 0) ? "admin-kpi-warn" : "")">
+                <span class="admin-kpi-val">@ViewBag.PendingSellers</span>
+                <span class="admin-kpi-lbl">Onay Bekleyen</span>
             </div>
         </div>
-    </article>
-}
-</section>
+    </div>
+
+    <nav class="admin-tab-nav">
+        <a href="?tab=overview" class="admin-tab @(activeTab == "overview" ? "active" : "")">📊 Genel Bakis</a>
+        <a href="?tab=users" class="admin-tab @(activeTab == "users" ? "active" : "")">👥 Kullanicilar</a>
+        <a href="?tab=listings" class="admin-tab @(activeTab == "listings" ? "active" : "")">🏠 Ilanlar</a>
+        <a href="?tab=search" class="admin-tab @(activeTab == "search" ? "active" : "")">🔍 Arama</a>
+    </nav>
+
+    @* ═══════════════════════════════ TAB: GENEL BAKIS ═══════════════════════════════ *@
+    @if (activeTab == "overview")
+    {
+        <div class="admin-tab-body">
+            <div class="kpi-grid" style="margin-bottom:32px;">
+                <article class="kpi-card">
+                    <h3>Toplam Ilan</h3>
+                    <strong>@ViewBag.TotalListings</strong>
+                    <span>Yayindaki tum ilanlar</span>
+                </article>
+                <article class="kpi-card">
+                    <h3>Aktif Ilan</h3>
+                    <strong>@ViewBag.ActiveListings</strong>
+                    <span>Kiralanmamis ilanlar</span>
+                </article>
+                <article class="kpi-card">
+                    <h3>Kiralanan</h3>
+                    <strong>@ViewBag.RentedListings</strong>
+                    <span>Kiralama gerceklesti</span>
+                </article>
+                <article class="kpi-card">
+                    <h3>Toplam Kullanici</h3>
+                    <strong>@ViewBag.TotalUsers</strong>
+                    <span>Kayitli uye sayisi</span>
+                </article>
+                <article class="kpi-card @(((int)ViewBag.PendingSellers > 0) ? "kpi-warn" : "")">
+                    <h3>Onay Bekleyen</h3>
+                    <strong>@ViewBag.PendingSellers</strong>
+                    <span>Satici onay talebi</span>
+                </article>
+            </div>
+
+            <h3 style="margin-bottom:16px; font-family:'Cormorant Garamond',serif; font-size:1.5rem;">Son Eklenen Ilanlar</h3>
+            <div class="grid-cards">
+                @foreach (var item in Model.Take(8))
+                {
+                    <article class="card-premium tilt-card reveal-on-scroll">
+                        <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+                            <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+                            @if (item.IsRented)
+                            {
+                                <span class="rented-overlay">KIRALANDI</span>
+                            }
+                            @if (item.IsAdminRecommended)
+                            {
+                                <span class="admin-badge-overlay">★ Admin Oneri</span>
+                            }
+                        </a>
+                        <div>
+                            <h3>@item.Title</h3>
+                            <p>@item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
+                            <p class="owner-pill">@item.OwnerName · @item.CreatedAt.ToString("dd.MM.yyyy")</p>
+                            <div class="actions actions-pro">
+                                <a class="btn-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@item.Id">Duzenle</a>
+                                <form asp-controller="Listings" asp-action="ToggleAdminRecommendation" method="post">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn-chat">@(item.IsAdminRecommended ? "Oneriyi Kaldir" : "Admin Oner")</button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    }
+
+    @* ═══════════════════════════════ TAB: KULLANICILAR ═══════════════════════════════ *@
+    @if (activeTab == "users")
+    {
+        <div class="admin-tab-body">
+            <form method="get" class="admin-search-bar">
+                <input type="hidden" name="tab" value="users" />
+                <input type="text" name="userSearch" value="@ViewBag.UserSearch" placeholder="Kullanici adi veya e-posta ara..." class="admin-search-input" />
+                <button type="submit" class="btn-lux btn-thin">Ara</button>
+                <a href="?tab=users" class="btn-chat">Temizle</a>
+            </form>
+
+            <div class="offers-table-wrap" style="margin-top:16px;">
+                <table class="lux-table">
+                    <thead>
+                        <tr>
+                            <th>Kullanici</th>
+                            <th>E-posta</th>
+                            <th>Rol</th>
+                            <th>Satici Onayi</th>
+                            <th>Kayit Tarihi</th>
+                            <th>Islem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var u in users)
+                    {
+                        <tr>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    @if (!string.IsNullOrWhiteSpace(u.ProfileImageUrl))
+                                    {
+                                        <img src="@u.ProfileImageUrl" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.15);" />
+                                    }
+                                    <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@u.Id" style="color:inherit;">@u.FullName</a>
+                                </div>
+                            </td>
+                            <td>@u.Email</td>
+                            <td>
+                                @if (u.Role == UserRole.Admin)
+                                {
+                                    <span class="admin-role-badge">Admin</span>
+                                }
+                                else
+                                {
+                                    <span class="user-role-badge">Musteri</span>
+                                }
+                            </td>
+                            <td>
+                                @if (u.IsSellerApproved)
+                                {
+                                    <span class="status-accepted">Onayli Satici</span>
+                                }
+                                else
+                                {
+                                    <span class="status-rejected">Onay Bekliyor</span>
+                                }
+                            </td>
+                            <td>—</td>
+                            <td>
+                                <div class="offer-actions">
+                                    <a class="btn-edit" asp-action="EditUser" asp-route-id="@u.Id">Duzenle</a>
+                                    @if (u.Role != UserRole.Admin)
+                                    {
+                                        <form asp-action="ToggleSellerApproval" method="post">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <button type="submit" class="btn-chat">@(u.IsSellerApproved ? "Onayi Kaldir" : "Onayla")</button>
+                                        </form>
+                                    }
+                                    <form asp-action="ToggleAdminRole" method="post">
+                                        <input type="hidden" name="id" value="@u.Id" />
+                                        <button type="submit" class="btn-chat">@(u.Role == UserRole.Admin ? "Admini Kaldir" : "Admin Yap")</button>
+                                    </form>
+                                    <form asp-action="DeleteUser" method="post">
+                                        <input type="hidden" name="id" value="@u.Id" />
+                                        <button type="submit" class="btn-delete">Sil</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (!users.Any())
+            {
+                <div class="panel" style="text-align:center;margin-top:16px;">Aramanizla eslesecek kullanici bulunamadi.</div>
+            }
+        </div>
+    }
+
+    @* ═══════════════════════════════ TAB: ILANLAR ═══════════════════════════════ *@
+    @if (activeTab == "listings")
+    {
+        <div class="admin-tab-body">
+            <form method="get" class="admin-listing-filters">
+                <input type="hidden" name="tab" value="listings" />
+                <div class="admin-filter-row">
+                    <input type="text" name="listingSearch" value="@ViewBag.ListingSearch" placeholder="Baslik, sehir veya satici ara..." class="admin-search-input" />
+                    <select name="listingStatus">
+                        <option value="">Tum Durumlar</option>
+                        <option value="active" selected="@(ViewBag.ListingStatus as string == "active")">Aktif</option>
+                        <option value="rented" selected="@(ViewBag.ListingStatus as string == "rented")">Kiralandi</option>
+                    </select>
+                    <select name="sort">
+                        @{ var curSort = ViewBag.Sort as string ?? ""; }
+                        <option value="newest" selected="@(curSort == "newest" || curSort == "")">En Yeni</option>
+                        <option value="oldest" selected="@(curSort == "oldest")">En Eski</option>
+                    </select>
+                </div>
+                <div class="admin-filter-row" style="margin-top:8px;">
+                    <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:0.85rem;">
+                        <span>Tarih Aralik:</span>
+                        <input type="date" name="dateFrom" value="@ViewBag.DateFrom" class="admin-date-input" placeholder="Baslangic" />
+                        <span>—</span>
+                        <input type="date" name="dateTo" value="@ViewBag.DateTo" class="admin-date-input" placeholder="Bitis" />
+                    </label>
+                    <button type="submit" class="btn-lux btn-thin">Filtrele</button>
+                    <a href="?tab=listings" class="btn-chat">Temizle</a>
+                </div>
+            </form>
+
+            <p class="studio-sub" style="margin:12px 0 16px;">@Model.Count ilan bulundu</p>
+
+            <div class="grid-cards">
+            @foreach (var item in Model)
+            {
+                <article class="card-premium tilt-card reveal-on-scroll">
+                    <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+                        <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+                        @if (item.IsRented)
+                        {
+                            <span class="rented-overlay">KIRALANDI</span>
+                        }
+                        @if (item.IsAdminRecommended)
+                        {
+                            <span class="admin-badge-overlay">★ Admin Oneri</span>
+                        }
+                        @if (item.IsDailyRecommended)
+                        {
+                            <span class="daily-badge-overlay">Gunun Tavsiyesi</span>
+                        }
+                    </a>
+                    <div>
+                        <h3>@item.Title</h3>
+                        <p>@item.ListingPurpose · @item.Province / @item.District</p>
+                        <p><strong>@item.MonthlyPrice.ToString("N0") TL</strong></p>
+                        <p class="owner-pill">
+                            <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@item.OwnerUserId" style="color:inherit;">@item.OwnerName</a>
+                        </p>
+                        <p style="font-size:0.76rem;color:var(--muted);margin-top:2px;">📅 @item.CreatedAt.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</p>
+                        <div class="actions actions-pro">
+                            <a class="btn-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@item.Id">Duzenle</a>
+                            <form asp-controller="Listings" asp-action="ToggleAdminRecommendation" method="post">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn-chat">@(item.IsAdminRecommended ? "Oneriyi Kaldir" : "Admin Oner")</button>
+                            </form>
+                            <form asp-controller="Listings" asp-action="ToggleDailyRecommendation" method="post">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn-chat">@(item.IsDailyRecommended ? "Gunlukten Kaldir" : "Gunun Tavsiyesi")</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            }
+            @if (!Model.Any())
+            {
+                <article class="panel">
+                    <h3>Ilan bulunamadi</h3>
+                    <p>Filtre kosullarinizi degistirerek tekrar deneyin.</p>
+                </article>
+            }
+            </div>
+        </div>
+    }
+
+    @* ═══════════════════════════════ TAB: ARAMA ═══════════════════════════════ *@
+    @if (activeTab == "search")
+    {
+        <div class="admin-tab-body">
+            <form method="get" class="admin-search-bar">
+                <input type="hidden" name="tab" value="search" />
+                <input type="text" name="globalSearch" value="@ViewBag.GlobalSearch" placeholder="Ilan basligi, sehir, kullanici adi veya e-posta..." class="admin-search-input" />
+                <button type="submit" class="btn-lux btn-thin">Ara</button>
+            </form>
+
+            @if (!string.IsNullOrWhiteSpace(ViewBag.GlobalSearch as string))
+            {
+                @if (searchUsers.Any())
+                {
+                    <h3 style="margin:24px 0 12px;font-family:'Cormorant Garamond',serif;font-size:1.4rem;">👥 Kullanicilar (@searchUsers.Count)</h3>
+                    <div class="offers-table-wrap">
+                        <table class="lux-table">
+                            <thead>
+                                <tr><th>Ad</th><th>E-posta</th><th>Rol</th><th>Satici</th><th>Git</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var u in searchUsers)
+                            {
+                                <tr>
+                                    <td>@u.FullName</td>
+                                    <td>@u.Email</td>
+                                    <td>@(u.Role == UserRole.Admin ? "Admin" : "Musteri")</td>
+                                    <td>@(u.IsSellerApproved ? "Onayli" : "Bekliyor")</td>
+                                    <td>
+                                        <div class="offer-actions">
+                                            <a class="btn-edit" asp-action="EditUser" asp-route-id="@u.Id">Duzenle</a>
+                                            <a class="btn-chat" asp-controller="Profiles" asp-action="Seller" asp-route-id="@u.Id">Profil</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="studio-sub" style="margin-top:20px;">Aramanizla eslesecek kullanici bulunamadi.</p>
+                }
+
+                @if (searchListings.Any())
+                {
+                    <h3 style="margin:28px 0 12px;font-family:'Cormorant Garamond',serif;font-size:1.4rem;">🏠 Ilanlar (@searchListings.Count)</h3>
+                    <div class="grid-cards">
+                    @foreach (var item in searchListings)
+                    {
+                        <article class="card-premium tilt-card">
+                            <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+                                <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+                                @if (item.IsRented) { <span class="rented-overlay">KIRALANDI</span> }
+                                @if (item.IsAdminRecommended) { <span class="admin-badge-overlay">★ Admin Oneri</span> }
+                            </a>
+                            <div>
+                                <h3>@item.Title</h3>
+                                <p>@item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
+                                <p class="owner-pill">@item.OwnerName · @item.CreatedAt.ToString("dd.MM.yyyy")</p>
+                                <div class="actions actions-pro">
+                                    <a class="btn-chat" asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id">Goruntule</a>
+                                    <a class="btn-edit" asp-controller="Listings" asp-action="Edit" asp-route-id="@item.Id">Duzenle</a>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                    </div>
+                }
+                else
+                {
+                    <p class="studio-sub" style="margin-top:10px;">Aramanizla eslesecek ilan bulunamadi.</p>
+                }
+
+                @if (!searchUsers.Any() && !searchListings.Any())
+                {
+                    <div class="panel" style="text-align:center;margin-top:24px;">
+                        <h3>Sonuc bulunamadi</h3>
+                        <p>Farkli bir arama terimi deneyin.</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="admin-search-hint">
+                    <div class="search-hint-icon">🔍</div>
+                    <p>Yukariya bir arama terimi girerek ilan veya kullanici arayabilirsiniz.</p>
+                    <p class="studio-sub">Ilan basligi, sehir, satici adi veya e-posta ile arayabilirsiniz.</p>
+                </div>
+            }
+        </div>
+    }
+
+</div>
