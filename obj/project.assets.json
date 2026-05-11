@@ -2404,9 +2404,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Gaming\\Desktop\\Evimsensin\\Evimsensin_v2\\Evimsensin.csproj",
-      "projectName": "Evimsensin",
-      "projectPath": "C:\\Users\\Gaming\\Desktop\\Evimsensin\\Evimsensin_v2\\Evimsensin.csproj",
+      "projectUniqueName": "C:\\Users\\Gaming\\Desktop\\Evimsensin\\Evimsensin_v2\\Degerliyuvam.csproj",
+      "projectName": "Degerliyuvam",
+      "projectPath": "C:\\Users\\Gaming\\Desktop\\Evimsensin\\Evimsensin_v2\\Degerliyuvam.csproj",
       "packagesPath": "C:\\Users\\Gaming\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Gaming\\Desktop\\Evimsensin\\Evimsensin_v2\\obj\\",
       "projectStyle": "PackageReference",

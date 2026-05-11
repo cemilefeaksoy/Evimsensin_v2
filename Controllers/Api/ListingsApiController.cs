@@ -1,7 +1,7 @@
-using Evimsensin.Services;
+using Degerliyuvam.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Evimsensin.Controllers.Api;
+namespace Degerliyuvam.Controllers.Api;
 
 [ApiController]
 [Route("api/[controller]")]

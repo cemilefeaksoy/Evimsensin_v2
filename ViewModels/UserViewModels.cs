@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using Evimsensin.Models;
+using Degerliyuvam.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace Evimsensin.ViewModels;
+namespace Degerliyuvam.ViewModels;
 
 public class ProfileEditViewModel
 {

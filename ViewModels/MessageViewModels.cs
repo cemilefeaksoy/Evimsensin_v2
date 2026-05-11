@@ -1,6 +1,6 @@
-using Evimsensin.Models;
+using Degerliyuvam.Models;
 
-namespace Evimsensin.ViewModels;
+namespace Degerliyuvam.ViewModels;
 
 public class ChatThreadViewModel
 {

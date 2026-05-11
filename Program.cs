@@ -1,5 +1,5 @@
-using Evimsensin.Data;
-using Evimsensin.Services;
+using Degerliyuvam.Data;
+using Degerliyuvam.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +11,10 @@ builder.Logging.AddConsole();
 builder.Services.AddControllersWithViews();
 builder.Services
     .AddDataProtection()
-    .SetApplicationName("Evimsensin")
+    .SetApplicationName("Degerliyuvam")
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, ".aspnet-data-protection-keys")));
 builder.Services.AddSession();
-var dbPath = Path.Combine(builder.Environment.ContentRootPath, "evimsensin.db");
+var dbPath = Path.Combine(builder.Environment.ContentRootPath, "degerliyuvam.db");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 builder.Services.AddScoped<AppService>();
@@ -44,8 +44,8 @@ app.Use(async (context, next) =>
     using var scope = context.RequestServices.CreateScope();
     var appService = scope.ServiceProvider.GetRequiredService<AppService>();
 
-    var hasRemember = context.Request.Cookies.TryGetValue("EvimsensinRemember", out var rememberedEmail) ||
-                      context.Request.Cookies.TryGetValue("EvimsensinRemember", out rememberedEmail);
+    var hasRemember = context.Request.Cookies.TryGetValue("DegerliyuvamRemember", out var rememberedEmail) ||
+                      context.Request.Cookies.TryGetValue("DegerliyuvamRemember", out rememberedEmail);
 
     if (!context.Session.GetInt32("UserId").HasValue &&
         hasRemember &&

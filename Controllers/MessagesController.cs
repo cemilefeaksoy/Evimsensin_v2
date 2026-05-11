@@ -1,9 +1,9 @@
-using Evimsensin.Services;
-using Evimsensin.ViewModels;
+using Degerliyuvam.Services;
+using Degerliyuvam.ViewModels;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Evimsensin.Controllers;
+namespace Degerliyuvam.Controllers;
 
 public class MessagesController : Controller
 {
@@ -179,7 +179,7 @@ public class MessagesController : Controller
         return Json(messages);
     }
 
-    private static object ProjectMessage(Evimsensin.Models.Message m, int currentUserId)
+    private static object ProjectMessage(Degerliyuvam.Models.Message m, int currentUserId)
         => new
         {
             id = m.Id,

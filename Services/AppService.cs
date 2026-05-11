@@ -1,12 +1,12 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Evimsensin.Data;
-using Evimsensin.Models;
-using Evimsensin.ViewModels;
+using Degerliyuvam.Data;
+using Degerliyuvam.Models;
+using Degerliyuvam.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
-namespace Evimsensin.Services;
+namespace Degerliyuvam.Services;
 
 public class AppService
 {
@@ -187,7 +187,7 @@ public class AppService
     {
         var admin = EnsureSeedUser(
             "Sistem Yonetici",
-            "admin@Evimsensin.com",
+            "admin@degerliyuvam.com",
             "Admin123!",
             UserRole.Admin,
             "Platform yonetimi ve kalite kontrol.",
@@ -195,7 +195,7 @@ public class AppService
 
         var sellerA = EnsureSeedUser(
             "Demo SatÄ±cÄ±",
-            "mÃ¼ÅŸteri@Evimsensin.com",
+            "musteri@degerliyuvam.com",
             "MÃ¼ÅŸteri123!",
             UserRole.Customer,
             "Bosphorus bolgesinde premium kiralik portfoy yonetiyorum.",
@@ -203,7 +203,7 @@ public class AppService
 
         var sellerB = EnsureSeedUser(
             "SatÄ±cÄ± Elif",
-            "elif@Evimsensin.com",
+            "elif@degerliyuvam.com",
             "SatÄ±cÄ±123!",
             UserRole.Customer,
             "Modern residence ve deniz manzarali ilanlar.",

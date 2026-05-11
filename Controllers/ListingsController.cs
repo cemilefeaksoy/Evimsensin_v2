@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text;
 using System.Globalization;
-using Evimsensin.Models;
-using Evimsensin.Services;
-using Evimsensin.ViewModels;
+using Degerliyuvam.Models;
+using Degerliyuvam.Services;
+using Degerliyuvam.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Evimsensin.Controllers;
+namespace Degerliyuvam.Controllers;
 
 public class ListingsController : Controller
 {

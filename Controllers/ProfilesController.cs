@@ -1,8 +1,8 @@
-using Evimsensin.Services;
-using Evimsensin.ViewModels;
+using Degerliyuvam.Services;
+using Degerliyuvam.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Evimsensin.Controllers;
+namespace Degerliyuvam.Controllers;
 
 public class ProfilesController : Controller
 {

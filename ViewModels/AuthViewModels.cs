@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace Evimsensin.ViewModels;
+namespace Degerliyuvam.ViewModels;
 
 public class RegisterViewModel
 {

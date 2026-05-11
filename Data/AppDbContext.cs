@@ -1,7 +1,7 @@
-using Evimsensin.Models;
+using Degerliyuvam.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Evimsensin.Data;
+namespace Degerliyuvam.Data;
 
 public class AppDbContext : DbContext
 {

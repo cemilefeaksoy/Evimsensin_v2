@@ -1,7 +1,7 @@
-using Evimsensin.Models;
+using Degerliyuvam.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Evimsensin.Services;
+namespace Degerliyuvam.Services;
 
 public static class AuthSession
 {
@@ -13,8 +13,8 @@ public static class AuthSession
 
         if (!rememberMe)
         {
-            controller.HttpContext.Response.Cookies.Delete("EvimsensinRemember");
-            controller.HttpContext.Response.Cookies.Delete("EvimsensinRemember");
+            controller.HttpContext.Response.Cookies.Delete("DegerliyuvamRemember");
+            controller.HttpContext.Response.Cookies.Delete("DegerliyuvamRemember");
             return;
         }
 
@@ -25,14 +25,14 @@ public static class AuthSession
             IsEssential = true
         };
 
-        controller.HttpContext.Response.Cookies.Append("EvimsensinRemember", user.Email, cookieOptions);
+        controller.HttpContext.Response.Cookies.Append("DegerliyuvamRemember", user.Email, cookieOptions);
     }
 
     public static void SignOut(Controller controller)
     {
         controller.HttpContext.Session.Clear();
-        controller.HttpContext.Response.Cookies.Delete("EvimsensinRemember");
-        controller.HttpContext.Response.Cookies.Delete("EvimsensinRemember");
+        controller.HttpContext.Response.Cookies.Delete("DegerliyuvamRemember");
+        controller.HttpContext.Response.Cookies.Delete("DegerliyuvamRemember");
     }
 
     public static int? UserId(Controller controller) => controller.HttpContext.Session.GetInt32("UserId");

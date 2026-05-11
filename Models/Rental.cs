@@ -1,4 +1,4 @@
-namespace Evimsensin.Models;
+namespace Degerliyuvam.Models;
 
 public class Rental
 {

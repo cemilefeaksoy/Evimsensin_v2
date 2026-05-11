@@ -1,9 +1,9 @@
-using Evimsensin.Services;
-using Evimsensin.Models;
-using Evimsensin.ViewModels;
+using Degerliyuvam.Services;
+using Degerliyuvam.Models;
+using Degerliyuvam.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Evimsensin.Controllers;
+namespace Degerliyuvam.Controllers;
 
 public class AdminController : Controller
 {

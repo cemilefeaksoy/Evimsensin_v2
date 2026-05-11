@@ -1,7 +1,7 @@
-using Evimsensin.Services;
+using Degerliyuvam.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Evimsensin.Controllers;
+namespace Degerliyuvam.Controllers;
 
 public class HomeController : Controller
 {

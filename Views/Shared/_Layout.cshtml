@@ -1,4 +1,4 @@
-@using Evimsensin.Services
+@using Degerliyuvam.Services
 @inject AppService AppService
 @{
     var currentUserId = Context.Session.GetInt32("UserId");
@@ -17,7 +17,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Evimsensin</title>
+    <title>@ViewData["Title"] - Degerliyuvam</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
         </div>
 
         <a class="brand-center" asp-controller="Home" asp-action="Index">
-            <span class="brand-top">EVİMSENSİN</span>
+            <span class="brand-top">DEGERLIYUVAM</span>
             <span class="brand-bottom">SEÇKİN GAYRİMENKUL</span>
         </a>
 
@@ -132,7 +132,7 @@
     <footer class="lux-footer-v2">
         <div class="footer-inner">
             <div class="footer-brand">
-                <div class="footer-brand-name">EVİMSENSİN</div>
+                <div class="footer-brand-name">DEGERLIYUVAM</div>
                 <div class="footer-brand-tagline">Seçkin Gayrimenkul Platformu</div>
                 <p class="footer-brand-desc">Türkiye'nin dört bir yanındaki kiralık ve satılık premium emlak ilanları tek çatı altında.</p>
             </div>
@@ -165,7 +165,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <span>© 2026 Evimsensin · Seçkin Gayrimenkul Platformu</span>
+            <span>© 2026 Degerliyuvam · Seçkin Gayrimenkul Platformu</span>
             <span class="footer-bottom-right">Tüm hakları saklıdır.</span>
         </div>
     </footer>
@@ -183,7 +183,7 @@
 
                 let initialized = false;
                 let lastUnread = @unreadCount;
-                let lastNotifiedMessageId = Number(localStorage.getItem('Evimsensin_last_notified_msg_id') || 0);
+                let lastNotifiedMessageId = Number(localStorage.getItem('Degerliyuvam_last_notified_msg_id') || 0);
 
                 function paintBadge(el, count) {
                     if (!el) return;
@@ -221,7 +221,7 @@
                         if (!('Notification' in window)) return;
                         if (Notification.permission === 'default') await Notification.requestPermission();
                         if (Notification.permission === 'granted') {
-                            new Notification('Evimsensin - Yeni Mesaj', { body: `${fromName}: ${preview}`, tag: 'evimsensin-msg' });
+                            new Notification('Degerliyuvam - Yeni Mesaj', { body: `${fromName}: ${preview}`, tag: 'degerliyuvam-msg' });
                         }
                     } catch {}
                 }
@@ -242,10 +242,10 @@
                             beep();
                             showBrowserNotification(fromName, preview);
                             lastNotifiedMessageId = latestId;
-                            localStorage.setItem('Evimsensin_last_notified_msg_id', String(latestId));
+                            localStorage.setItem('Degerliyuvam_last_notified_msg_id', String(latestId));
                         }
                         if (!initialized && latestId > 0 && latestId > lastNotifiedMessageId) {
-                            localStorage.setItem('Evimsensin_last_notified_msg_id', String(latestId));
+                            localStorage.setItem('Degerliyuvam_last_notified_msg_id', String(latestId));
                             lastNotifiedMessageId = latestId;
                         }
                         lastUnread = count;

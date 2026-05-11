@@ -1,8 +1,8 @@
-using Evimsensin.Models;
-using Evimsensin.Services;
+using Degerliyuvam.Models;
+using Degerliyuvam.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Evimsensin.Controllers;
+namespace Degerliyuvam.Controllers;
 
 public class SellerController : Controller
 {

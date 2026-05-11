@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Evimsensin.Models;
+namespace Degerliyuvam.Models;
 
 public class Message
 {
