@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Http
+@using Evimsensin.Models
 @{
-    ViewData["Title"] = "Satici Profili";
+    ViewData["Title"] = "Kullanici Profili";
     var user = ViewBag.User as User;
     var listings = ViewBag.Listings as List<Listing> ?? new List<Listing>();
     var currentUserId = Context.Session.GetInt32("UserId");
@@ -9,6 +10,7 @@
     var sellerRatingCount = (int?)ViewBag.SellerRatingCount ?? 0;
     var listingRatingMap = ViewBag.ListingRatingMap as Dictionary<int, ValueTuple<double, int>> ?? new Dictionary<int, ValueTuple<double, int>>();
     var sellerStars = Math.Clamp((int)Math.Round(sellerRatingAverage, MidpointRounding.AwayFromZero), 0, 5);
+    var isAdmin = user?.Role == UserRole.Admin;
 }
 
 @if (user is null)
@@ -17,67 +19,107 @@
 }
 else
 {
-    <section class="panel reveal-on-scroll seller-profile-head">
-        <img src="@user.ProfileImageUrl" alt="@user.FullName" class="seller-avatar-lg" />
-        <div>
-            <h2>@user.FullName</h2>
-            <p class="studio-sub">@(string.IsNullOrWhiteSpace(user.Bio) ? "Bu satici henuz aciklama eklemedi." : user.Bio)</p>
-            <p class="owner-pill">Satici Durumu: @(user.IsSellerApproved ? "Onayli" : "Onay Bekliyor")</p>
-            <p class="owner-pill">
-                Satici Puani:
-                <span class="rating-stars">
-                    @for (var i = 1; i <= 5; i++)
+    <section class="profile-view-shell reveal-on-scroll" style="max-width:960px;">
+        <div class="profile-view-card">
+            <div class="profile-view-avatar @(isAdmin ? "avatar-admin" : "")">
+                <img src="@(string.IsNullOrWhiteSpace(user.ProfileImageUrl) ? "/img/seed-8.jpeg" : user.ProfileImageUrl)" alt="@user.FullName" />
+            </div>
+            <div class="profile-view-info">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+                    @if (isAdmin)
                     {
-                        <span class="rating-star @(i <= sellerStars ? "filled" : "")">★</span>
+                        <span class="profile-admin-badge">⚡ ADMİN</span>
                     }
-                </span>
-                @sellerRatingAverage.ToString("0.0") / 5 (@sellerRatingCount puan)
-            </p>
-            @if (canMessageSeller)
-            {
-                <div class="actions" style="margin-top: 12px;">
-                    <a class="btn-chat" asp-controller="Messages" asp-action="Chat" asp-route-withUserId="@user.Id">Saticiya Mesaj Gonder</a>
+                    else if (user.IsSellerApproved)
+                    {
+                        <span class="profile-seller-badge">✓ Onayli Satici</span>
+                    }
                 </div>
-            }
+                <h1 class="profile-view-name">@user.FullName</h1>
+                <p class="profile-view-bio">@(string.IsNullOrWhiteSpace(user.Bio) ? "Bu kullanici henuz bir aciklama eklemedi." : user.Bio)</p>
+
+                @if (!isAdmin)
+                {
+                    <div class="profile-rating-row">
+                        <div class="rating-stars-lg">
+                            @for (var i = 1; i <= 5; i++)
+                            {
+                                <span class="rating-star @(i <= sellerStars ? "filled" : "")">★</span>
+                            }
+                        </div>
+                        <span class="rating-score">@sellerRatingAverage.ToString("0.0") <small>/ 5</small></span>
+                        <span class="rating-count">(@sellerRatingCount puan)</span>
+                    </div>
+
+                    <div class="profile-stats-row">
+                        <div class="profile-stat">
+                            <strong>@listings.Count</strong>
+                            <span>Toplam Ilan</span>
+                        </div>
+                        <div class="profile-stat">
+                            <strong>@listings.Count(l => l.IsRented)</strong>
+                            <span>Kiralandi</span>
+                        </div>
+                        <div class="profile-stat">
+                            <strong>@listings.Count(l => !l.IsRented)</strong>
+                            <span>Aktif</span>
+                        </div>
+                    </div>
+                }
+
+                <div class="profile-view-actions" style="margin-top:20px;">
+                    @if (canMessageSeller && !isAdmin)
+                    {
+                        <a class="btn-lux btn-thin" asp-controller="Messages" asp-action="Chat" asp-route-withUserId="@user.Id">💬 Mesaj Gonder</a>
+                    }
+                    @if (currentUserId.HasValue && currentUserId.Value == user.Id)
+                    {
+                        <a href="/Profiles/Me?edit=true" class="btn-chat">✏ Profili Duzenle</a>
+                    }
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="section-head slim reveal-on-scroll">
-        <h2>Saticinin Ilanlari</h2>
-        <p>Aktif ve kiralanmis ilanlar</p>
-    </section>
-
-    <section class="grid-cards">
-    @foreach (var item in listings)
+    @if (!isAdmin && listings.Any())
     {
-        <article class="card-premium tilt-card reveal-on-scroll">
-            <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
-                <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
-                @if (item.IsRented)
-                {
-                    <span class="rented-overlay">KIRALANDI</span>
-                }
-            </a>
-            <div>
-                <h3>@item.Title</h3>
-                <p>@item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL/ay</p>
-                @if (listingRatingMap.TryGetValue(item.Id, out var rating))
-                {
-                    var listingStars = Math.Clamp((int)Math.Round(rating.Item1, MidpointRounding.AwayFromZero), 0, 5);
-                    <p class="studio-sub">
-                        Ilan Puani:
-                        <span class="rating-stars">
-                            @for (var i = 1; i <= 5; i++)
-                            {
-                                <span class="rating-star @(i <= listingStars ? "filled" : "")">★</span>
-                            }
-                        </span>
-                        @rating.Item1.ToString("0.0") / 5 (@rating.Item2 puan)
-                    </p>
-                }
-                <a class="btn-chat" asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id">Detay</a>
-            </div>
-        </article>
+        <section class="section-head slim reveal-on-scroll">
+            <h2>Saticinin Ilanlari</h2>
+            <p>@listings.Count aktif ve kiralanmis ilan</p>
+        </section>
+
+        <section class="grid-cards">
+        @foreach (var item in listings)
+        {
+            <article class="card-premium tilt-card reveal-on-scroll">
+                <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+                    <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+                    @if (item.IsRented)
+                    {
+                        <span class="rented-overlay">KIRALANDI</span>
+                    }
+                    @if (item.IsAdminRecommended)
+                    {
+                        <span class="admin-badge-overlay">★ Admin Oneri</span>
+                    }
+                </a>
+                <div>
+                    <h3>@item.Title</h3>
+                    <p>@item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL/ay</p>
+                    @if (listingRatingMap.TryGetValue(item.Id, out var rating))
+                    {
+                        var listingStars = Math.Clamp((int)Math.Round(rating.Item1, MidpointRounding.AwayFromZero), 0, 5);
+                        <p class="studio-sub">
+                            <span class="rating-stars">
+                                @for (var i = 1; i <= 5; i++) { <span class="rating-star @(i <= listingStars ? "filled" : "")">★</span> }
+                            </span>
+                            @rating.Item1.ToString("0.0") (@rating.Item2 puan)
+                        </p>
+                    }
+                    <a class="btn-chat" asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id">Detay</a>
+                </div>
+            </article>
+        }
+        </section>
     }
-    </section>
 }

@@ -32,7 +32,9 @@ public class ListingsController : Controller
         int? minNet = null,
         int? maxNet = null,
         int? minGross = null,
-        int? maxGross = null)
+        int? maxGross = null,
+        string? dateFrom = null,
+        string? dateTo = null)
     {
         city = (city ?? string.Empty).Trim();
         district = (district ?? string.Empty).Trim();
@@ -88,6 +90,11 @@ public class ListingsController : Controller
                 listings = listings.Where(x => x.GrossSquareMeters <= maxGross.Value).ToList();
         }
 
+        if (DateTime.TryParse(dateFrom, out var dfrom))
+            listings = listings.Where(x => x.CreatedAt.Date >= dfrom.Date).ToList();
+        if (DateTime.TryParse(dateTo, out var dto))
+            listings = listings.Where(x => x.CreatedAt.Date <= dto.Date).ToList();
+
         listings = (sort ?? string.Empty).ToLowerInvariant() switch
         {
             "title_asc" => listings.OrderBy(x => x.Title).ToList(),
@@ -99,6 +106,8 @@ public class ListingsController : Controller
             _ => listings.OrderByDescending(x => x.CreatedAt).ToList()
         };
 
+        ViewBag.FilterDateFrom = dateFrom;
+        ViewBag.FilterDateTo = dateTo;
         ViewBag.Cities = OrderCitiesForUi(locationMap.Keys);
         ViewBag.Districts = !string.IsNullOrWhiteSpace(city) && locationMap.TryGetValue(city, out var filteredDistricts)
             ? filteredDistricts.OrderBy(x => x).ToList()
@@ -371,7 +380,7 @@ public class ListingsController : Controller
 
         if (gallery.Count == 0)
         {
-            ModelState.AddModelError(nameof(model.ImageFile), "En az bir ilan gorseli ekleyin.");
+            gallery.Add("/img/seed-1.jpeg");
         }
 
         if (!ModelState.IsValid) return View(model);

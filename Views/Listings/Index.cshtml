@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Ilanlar";
     var isAdmin = Context.Session.GetString("Role") == "Admin";
+    var isLoggedIn = Context.Session.GetInt32("UserId").HasValue;
     var cities = ViewBag.Cities as List<string> ?? new List<string>();
     var districts = ViewBag.Districts as List<string> ?? new List<string>();
     var rooms = ViewBag.Rooms as List<string> ?? new List<string>();
@@ -11,6 +12,7 @@
     var allListings = Model.ToList();
     var dailyRecommendedListings = allListings.Where(x => x.IsDailyRecommended).ToList();
     var regularListings = allListings.Where(x => !x.IsDailyRecommended).ToList();
+    var selectedSort = (ViewBag.FilterSort as string ?? "").ToLowerInvariant();
 }
 
 @if (TempData["Success"] is string success && !string.IsNullOrWhiteSpace(success))
@@ -25,7 +27,7 @@
 <section class="panel reveal-on-scroll">
     <div class="section-head slim">
         <h2>Tum Ilanlar</h2>
-        <p>Normal filtre: sehir/ilce/fiyat. Detayli filtre: oda, tip ve metrekare.</p>
+        <p>@Model.Count ilan listeleniyor &nbsp;·&nbsp; Sehir, fiyat ve tarih bazli filtreleme</p>
     </div>
 
     <form method="get" class="filter-form">
@@ -49,6 +51,7 @@
                     <option value="Kiralik">Kiralik</option>
                 }
             </select>
+
             <select name="city" data-province-select data-location-map='@Html.Raw(locationMapJson)'>
                 <option value="">Tum Sehirler</option>
                 @foreach (var c in cities)
@@ -79,13 +82,11 @@
                 }
             </select>
 
-            <input type="number" name="minPrice" placeholder="Min Fiyat" value="@ViewBag.FilterMinPrice" />
-            <input type="number" name="maxPrice" placeholder="Max Fiyat" value="@ViewBag.FilterMaxPrice" />
+            <input type="number" name="minPrice" placeholder="Min Fiyat (TL)" value="@ViewBag.FilterMinPrice" />
+            <input type="number" name="maxPrice" placeholder="Max Fiyat (TL)" value="@ViewBag.FilterMaxPrice" />
+
             <select name="sort">
-                @{
-                    var selectedSort = (ViewBag.FilterSort as string ?? "").ToLowerInvariant();
-                }
-                <option value="" selected="@(string.IsNullOrWhiteSpace(selectedSort))">Varsayilan (En Yeni)</option>
+                <option value="" selected="@(string.IsNullOrWhiteSpace(selectedSort))">En Yeni (Varsayilan)</option>
                 <option value="title_asc" selected="@(selectedSort == "title_asc")">A'dan Z'ye</option>
                 <option value="title_desc" selected="@(selectedSort == "title_desc")">Z'den A'ya</option>
                 <option value="price_desc" selected="@(selectedSort == "price_desc")">En Pahalidan Ucuza</option>
@@ -95,9 +96,22 @@
             </select>
         </div>
 
+        <div class="filter-date-row">
+            <span class="filter-date-label">📅 Tarih Araligi:</span>
+            <div class="filter-date-group">
+                <label>Baslangic</label>
+                <input type="date" name="dateFrom" value="@ViewBag.FilterDateFrom" class="admin-date-input" />
+            </div>
+            <span class="filter-date-sep">—</span>
+            <div class="filter-date-group">
+                <label>Bitis</label>
+                <input type="date" name="dateTo" value="@ViewBag.FilterDateTo" class="admin-date-input" />
+            </div>
+        </div>
+
         <label class="chk" style="margin-top:8px;">
             <input type="checkbox" name="detailed" value="true" @(detailed ? "checked" : "") id="detailedFilterToggle" />
-            Detayli Filtre
+            Detayli Filtre (oda tipi, emlak tipi, metrekare)
         </label>
 
         <div id="detailedFilterBox" class="filter-grid filter-advanced @(detailed ? "open" : "")">
@@ -137,12 +151,12 @@
             <input type="number" name="maxGross" placeholder="Max Brut m²" value="@ViewBag.FilterMaxGross" />
         </div>
 
-        <div class="actions actions-pro" style="margin-top:10px;">
-            <button type="submit" class="btn-lux btn-thin">Filtrele</button>
+        <div class="actions actions-pro" style="margin-top:12px;">
+            <button type="submit" class="btn-lux btn-thin">🔍 Filtrele</button>
             <a asp-action="Index" class="btn-chat">Temizle</a>
-            @if (Context.Session.GetInt32("UserId").HasValue)
+            @if (isLoggedIn)
             {
-                <a asp-action="MyListings" class="btn-edit">Kendi Ilanlarim</a>
+                <a asp-action="MyListings" class="btn-edit">📋 Kendi Ilanlarim</a>
             }
         </div>
     </form>
@@ -171,10 +185,7 @@
                     <h3>@item.Title</h3>
                     <p>@item.ListingPurpose · @item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
                     <p>@item.PropertyType · @item.RoomCount · @item.NetSquareMeters m²</p>
-                    <p class="owner-pill">
-                        Ilan Sahibi:
-                        <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@item.OwnerUserId">@item.OwnerName</a>
-                    </p>
+                    <p class="owner-pill">Ilan Sahibi: <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@item.OwnerUserId">@item.OwnerName</a></p>
                     <div class="actions actions-pro">
                         <a class="btn-chat" asp-action="Details" asp-route-id="@item.Id">Detaya Git</a>
                         @if (isAdmin)
@@ -209,22 +220,19 @@
             {
                 <span class="rented-overlay">KIRALANDI</span>
             }
+            @if (item.IsAdminRecommended)
+            {
+                <span class="admin-badge-overlay">★ Admin Oneri</span>
+            }
         </a>
         <div>
-            <h3>
-                @item.Title
-                @if (item.IsAdminRecommended)
-                {
-                    <span class="badge-star">★ Admin Oneri</span>
-                }
-            </h3>
+            <h3>@item.Title</h3>
             <p>@item.ListingPurpose · @item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
             <p>@item.PropertyType · @item.RoomCount · @item.NetSquareMeters m²</p>
             <p class="owner-pill">
-                Ilan Sahibi:
-                <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@item.OwnerUserId">@item.OwnerName</a>
+                Ilan Sahibi: <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@item.OwnerUserId">@item.OwnerName</a>
+                <span style="margin-left:6px;font-size:0.72rem;opacity:.6;">📅 @item.CreatedAt.ToString("dd.MM.yy")</span>
             </p>
-
             <div class="actions actions-pro">
                 <a class="btn-chat" asp-action="Details" asp-route-id="@item.Id">Detaya Git</a>
                 @if (isAdmin)

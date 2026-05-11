@@ -73,24 +73,26 @@
                     </button>
 
                     <div class="profile-panel" id="profileMenuPanel">
-                        <a asp-controller="Profiles" asp-action="Me">Profilim</a>
+                        <a asp-controller="Profiles" asp-action="Me">👤 Profilim</a>
+                        @if (!isAdmin)
+                        {
+                            <a asp-controller="Listings" asp-action="MyListings">📋 Ilanlarim</a>
+                        }
                         @if (canCreateListing)
                         {
-                            <a asp-controller="Listings" asp-action="Create">Ilan Ver</a>
+                            <a asp-controller="Listings" asp-action="Create">+ Ilan Ver</a>
                         }
                         @if (!isAdmin)
                         {
-                            <a asp-controller="Seller" asp-action="Dashboard">Satici Paneli</a>
-                            <a asp-controller="Seller" asp-action="Offers">Tekliflerim</a>
+                            <a asp-controller="Seller" asp-action="Dashboard">📊 Satici Paneli</a>
+                            <a asp-controller="Seller" asp-action="Offers">🤝 Tekliflerim</a>
                         }
-                        <a asp-controller="Messages" asp-action="Inbox">Mesaj Kutusu</a>
+                        <a asp-controller="Messages" asp-action="Inbox">💬 Mesaj Kutusu</a>
                         @if (isAdmin)
                         {
-                            <a asp-controller="Admin" asp-action="Dashboard">Admin Panel</a>
-                            <a asp-controller="Admin" asp-action="Dashboard" asp-fragment="kullanici-yonetimi">Admin Ekle</a>
+                            <a asp-controller="Admin" asp-action="Dashboard">⚡ Admin Paneli</a>
+                            <a href="/Admin/Dashboard?tab=users">👥 Kullanici Yonetimi</a>
                         }
-                        <a asp-controller="Home" asp-action="About">Hakkimizda</a>
-                        <a asp-controller="Home" asp-action="Contact">Iletisim</a>
                         <a class="danger-link" asp-controller="Account" asp-action="Logout">Cikis Yap</a>
                     </div>
                 </div>
