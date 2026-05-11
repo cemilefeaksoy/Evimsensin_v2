@@ -2,12 +2,12 @@
 @{
     ViewData["Title"] = "Satici Profili";
     var user = ViewBag.User as User;
-    var listings = ViewBag.Listings as List<Listing> ?? [];
+    var listings = ViewBag.Listings as List<Listing> ?? new List<Listing>();
     var currentUserId = Context.Session.GetInt32("UserId");
     var canMessageSeller = user is not null && currentUserId.HasValue && currentUserId.Value != user.Id;
     var sellerRatingAverage = (double?)ViewBag.SellerRatingAverage ?? 0;
     var sellerRatingCount = (int?)ViewBag.SellerRatingCount ?? 0;
-    var listingRatingMap = ViewBag.ListingRatingMap as Dictionary<int, ValueTuple<double, int>> ?? [];
+    var listingRatingMap = ViewBag.ListingRatingMap as Dictionary<int, ValueTuple<double, int>> ?? new Dictionary<int, ValueTuple<double, int>>();
     var sellerStars = Math.Clamp((int)Math.Round(sellerRatingAverage, MidpointRounding.AwayFromZero), 0, 5);
 }
 

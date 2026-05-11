@@ -1,8 +1,8 @@
 @model ListingEditViewModel
 @{
     var isAdmin = (ViewBag.IsAdmin as bool?) == true;
-    var sellers = ViewBag.Sellers as List<User> ?? [];
-    var provinces = ViewBag.Provinces as List<string> ?? [];
+    var sellers = ViewBag.Sellers as List<User> ?? new List<User>();
+    var provinces = ViewBag.Provinces as List<string> ?? new List<string>();
     var locationMapJson = ViewBag.LocationMapJson as string ?? "{}";
 }
 

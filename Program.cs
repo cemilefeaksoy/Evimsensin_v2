@@ -26,9 +26,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-
-// Required for user-uploaded files under wwwroot/img/uploads
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -59,11 +56,8 @@ app.Use(async (context, next) =>
 
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

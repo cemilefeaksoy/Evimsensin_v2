@@ -7,10 +7,10 @@ namespace Evimsensin.ViewModels;
 public class ListingDetailsViewModel
 {
     public Listing Listing { get; set; } = new();
-    public List<string> GalleryImages { get; set; } = [];
+    public List<string> GalleryImages { get; set; } = new List<string>();
     public User? OwnerUser { get; set; }
-    public List<Comment> Comments { get; set; } = [];
-    public List<OfferDisplayViewModel> Offers { get; set; } = [];
+    public List<Comment> Comments { get; set; } = new List<Comment>();
+    public List<OfferDisplayViewModel> Offers { get; set; } = new List<OfferDisplayViewModel>();
 
     public bool CanEdit { get; set; }
     public bool IsAdmin { get; set; }
@@ -94,7 +94,7 @@ public class ListingEditViewModel
 
     public string ImageUrl { get; set; } = string.Empty;
     public IFormFile? ImageFile { get; set; }
-    public List<IFormFile> ImageFiles { get; set; } = [];
+    public List<IFormFile> ImageFiles { get; set; } = new List<IFormFile>();
     public string AdditionalImageUrls { get; set; } = string.Empty;
     public string ExistingImagesCsv { get; set; } = string.Empty;
     public bool ResetExistingImages { get; set; }

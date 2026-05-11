@@ -1,8 +1,8 @@
 @model List<Listing>
 @{
     ViewData["Title"] = "Ana Sayfa";
-    var featured = Model.Take(3).ToList();
-    var luxury = Model.Skip(3).Take(3).ToList();
+    var featured = Model;
+    var adminRecommended = ViewBag.AdminRecommended as List<Listing> ?? new List<Listing>();
     var canCreateListing = Context.Session.GetInt32("UserId").HasValue;
 }
 
@@ -52,14 +52,18 @@
 </section>
 
 <section class="portfolio-grid">
-@foreach (var item in luxury)
+@foreach (var item in adminRecommended)
 {
-    <article class="portfolio-card reveal-on-scroll tilt-card">
+    <article class="portfolio-card reveal-on-scroll tilt-card @(item.IsAdminRecommended ? "recommended-card" : "")">
         <a asp-controller="Listings" asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
             <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
             @if (item.IsRented)
             {
                 <span class="rented-overlay">KIRALANDI</span>
+            }
+            @if (item.IsAdminRecommended)
+            {
+                <span class="admin-badge-overlay">★ Admin Oneri</span>
             }
         </a>
         <div class="portfolio-body">

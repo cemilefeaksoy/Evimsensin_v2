@@ -1,8 +1,35 @@
 @model ListingEditViewModel
 @{ ViewData["Title"] = "Ilan Ver"; }
-<section class="studio-shell reveal-on-scroll">
-    <div class="studio-badge">Yeni Ev Ilani</div>
-    <h2>Yeni Ilan Ver</h2>
-    <p class="studio-sub">Ev adini, aciklamayi ve fotograflari ekleyerek ilanini hemen yayinla.</p>
+
+<div class="create-hero reveal-on-scroll">
+    <div class="create-hero-content">
+        <span class="hero-kicker">YENİ İLAN</span>
+        <h1>Evinizi Platforma Tasiyin</h1>
+        <p>Birkaç adımda ilanınızı yayına alın, binlerce potansiyel kiracıya ulaşın.</p>
+    </div>
+    <div class="create-steps-bar">
+        <div class="create-step active">
+            <span class="step-icon">🏠</span>
+            <span>Temel Bilgiler</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="create-step active">
+            <span class="step-icon">📐</span>
+            <span>Özellikler</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="create-step active">
+            <span class="step-icon">📷</span>
+            <span>Fotoğraflar</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="create-step active">
+            <span class="step-icon">✅</span>
+            <span>Yayınla</span>
+        </div>
+    </div>
+</div>
+
+<section class="create-shell reveal-on-scroll">
     <partial name="_ListingForm" model="Model" />
 </section>

@@ -12,38 +12,38 @@ public class AppService
 {
     private readonly AppDbContext _db;
 
-    private static readonly Dictionary<string, List<string>> _locations = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, List<string>> _locations = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
     {
-        ["Istanbul"] = ["Besiktas", "Kadikoy", "Sisli", "Uskudar", "Bakirkoy", "Beylikduzu", "Sariyer", "Atasehir"],
-        ["Ankara"] = ["Cankaya", "Yenimahalle", "Kecioren", "Etimesgut", "Mamak", "Golbasi", "Pursaklar"],
-        ["Izmir"] = ["Karsiyaka", "Bornova", "Konak", "Buca", "Balcova", "Bayrakli", "Guzelbahce"],
-        ["Bursa"] = ["Nilufer", "Osmangazi", "Yildirim", "Mudanya", "Gursu", "Inegol"],
-        ["Antalya"] = ["Muratpasa", "Konyaalti", "Kepez", "Lara", "Dosemealti", "Alanya"],
-        ["Adana"] = ["Cukurova", "Seyhan", "Yuregir", "Sariçam", "Karatas"],
-        ["Konya"] = ["Selcuklu", "Meram", "Karatay", "Eregli", "Beysehir"],
-        ["Gaziantep"] = ["Sahinbey", "Sehitkamil", "Oguzeli", "Nizip", "Islahiye"],
-        ["Kocaeli"] = ["Izmit", "Gebze", "Basiskele", "Derince", "Golcuk"],
-        ["Mersin"] = ["Mezitli", "Yenisehir", "Toroslar", "Tarsus", "Erdemli"],
-        ["Kayseri"] = ["Melikgazi", "Kocasinan", "Talas", "Develi", "Yesilhisar"],
-        ["Eskisehir"] = ["Tepebasi", "Odunpazari", "Sivrihisar", "Inonu"],
-        ["Samsun"] = ["Atakum", "Ilkadim", "Canik", "Bafra", "Carsamba"],
-        ["Trabzon"] = ["Ortahisar", "Yomra", "Akcaabat", "Arsin", "Vakfikebir"],
-        ["Diyarbakir"] = ["Baglar", "Kayapinar", "Yenisehir", "Sur", "Bismil"],
-        ["Sanliurfa"] = ["Haliliye", "Eyyubiye", "Karakopru", "Siverek", "Viransehir"],
-        ["Erzurum"] = ["Yakutiye", "Palandoken", "Aziziye", "Horasan", "Oltu"],
-        ["Malatya"] = ["Battalgazi", "Yesilyurt", "Akcadag", "Darende", "Dogansehir"],
-        ["Manisa"] = ["Sehzadeler", "Yunusemre", "Turgutlu", "Salihli", "Akhisar"],
-        ["Balikesir"] = ["Ayvalik", "Edremit", "Bandirma", "Karesi", "Altieylul"],
-        ["Aydin"] = ["Efeler", "Kusadasi", "Didim", "Nazilli", "Soke"],
-        ["Mugla"] = ["Bodrum", "Fethiye", "Marmaris", "Milas", "Datca"],
-        ["Tekirdag"] = ["Suleymanpasa", "Corlu", "Cerkezkoy", "Malkara", "Saray"],
-        ["Sakarya"] = ["Adapazari", "Serdivan", "Akyazi", "Sapanca", "Karasu"],
-        ["Denizli"] = ["Pamukkale", "Merkezefendi", "Acipayam", "Saraykoy", "Tavas"],
-        ["Hatay"] = ["Antakya", "Defne", "Iskenderun", "Samandag", "Dortyol"],
-        ["Kahramanmaras"] = ["Onikisubat", "Dulkadiroglu", "Elbistan", "Afshin", "Turkoglu"],
-        ["Van"] = ["Ipekyolu", "Edremit", "Tusba", "Ercis", "Gevas"],
-        ["Ordu"] = ["Altinordu", "Unye", "Fatsa", "Persembe", "Kumru"],
-        ["Sivas"] = ["Merkez", "Susehri", "Yildizeli", "Sarkisla", "Zara"]
+        ["Istanbul"] = new List<string> { "Besiktas", "Kadikoy", "Sisli", "Uskudar", "Bakirkoy", "Beylikduzu", "Sariyer", "Atasehir" },
+        ["Ankara"] = new List<string> { "Cankaya", "Yenimahalle", "Kecioren", "Etimesgut", "Mamak", "Golbasi", "Pursaklar" },
+        ["Izmir"] = new List<string> { "Karsiyaka", "Bornova", "Konak", "Buca", "Balcova", "Bayrakli", "Guzelbahce" },
+        ["Bursa"] = new List<string> { "Nilufer", "Osmangazi", "Yildirim", "Mudanya", "Gursu", "Inegol" },
+        ["Antalya"] = new List<string> { "Muratpasa", "Konyaalti", "Kepez", "Lara", "Dosemealti", "Alanya" },
+        ["Adana"] = new List<string> { "Cukurova", "Seyhan", "Yuregir", "Sariçam", "Karatas" },
+        ["Konya"] = new List<string> { "Selcuklu", "Meram", "Karatay", "Eregli", "Beysehir" },
+        ["Gaziantep"] = new List<string> { "Sahinbey", "Sehitkamil", "Oguzeli", "Nizip", "Islahiye" },
+        ["Kocaeli"] = new List<string> { "Izmit", "Gebze", "Basiskele", "Derince", "Golcuk" },
+        ["Mersin"] = new List<string> { "Mezitli", "Yenisehir", "Toroslar", "Tarsus", "Erdemli" },
+        ["Kayseri"] = new List<string> { "Melikgazi", "Kocasinan", "Talas", "Develi", "Yesilhisar" },
+        ["Eskisehir"] = new List<string> { "Tepebasi", "Odunpazari", "Sivrihisar", "Inonu" },
+        ["Samsun"] = new List<string> { "Atakum", "Ilkadim", "Canik", "Bafra", "Carsamba" },
+        ["Trabzon"] = new List<string> { "Ortahisar", "Yomra", "Akcaabat", "Arsin", "Vakfikebir" },
+        ["Diyarbakir"] = new List<string> { "Baglar", "Kayapinar", "Yenisehir", "Sur", "Bismil" },
+        ["Sanliurfa"] = new List<string> { "Haliliye", "Eyyubiye", "Karakopru", "Siverek", "Viransehir" },
+        ["Erzurum"] = new List<string> { "Yakutiye", "Palandoken", "Aziziye", "Horasan", "Oltu" },
+        ["Malatya"] = new List<string> { "Battalgazi", "Yesilyurt", "Akcadag", "Darende", "Dogansehir" },
+        ["Manisa"] = new List<string> { "Sehzadeler", "Yunusemre", "Turgutlu", "Salihli", "Akhisar" },
+        ["Balikesir"] = new List<string> { "Ayvalik", "Edremit", "Bandirma", "Karesi", "Altieylul" },
+        ["Aydin"] = new List<string> { "Efeler", "Kusadasi", "Didim", "Nazilli", "Soke" },
+        ["Mugla"] = new List<string> { "Bodrum", "Fethiye", "Marmaris", "Milas", "Datca" },
+        ["Tekirdag"] = new List<string> { "Suleymanpasa", "Corlu", "Cerkezkoy", "Malkara", "Saray" },
+        ["Sakarya"] = new List<string> { "Adapazari", "Serdivan", "Akyazi", "Sapanca", "Karasu" },
+        ["Denizli"] = new List<string> { "Pamukkale", "Merkezefendi", "Acipayam", "Saraykoy", "Tavas" },
+        ["Hatay"] = new List<string> { "Antakya", "Defne", "Iskenderun", "Samandag", "Dortyol" },
+        ["Kahramanmaras"] = new List<string> { "Onikisubat", "Dulkadiroglu", "Elbistan", "Afshin", "Turkoglu" },
+        ["Van"] = new List<string> { "Ipekyolu", "Edremit", "Tusba", "Ercis", "Gevas" },
+        ["Ordu"] = new List<string> { "Altinordu", "Unye", "Fatsa", "Persembe", "Kumru" },
+        ["Sivas"] = new List<string> { "Merkez", "Susehri", "Yildizeli", "Sarkisla", "Zara" }
     };
 
     public AppService(AppDbContext db)
@@ -67,8 +67,9 @@ public class AppService
 
     private static string HashPassword(string password)
     {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
-        return Convert.ToHexString(bytes);
+        using var sha256 = SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return BitConverter.ToString(bytes).Replace("-", string.Empty);
     }
 
     private bool VerifyPassword(string inputPassword, string storedHash)
@@ -164,7 +165,7 @@ public class AppService
             "Modern residence ve deniz manzarali ilanlar.",
             "/img/seed-9.jpeg");
 
-        EnsureDemoListings([sellerA, sellerB], admin.Id);
+        EnsureDemoListings(new List<User> { sellerA, sellerB }, admin.Id);
         _db.SaveChanges();
     }
 
@@ -566,7 +567,7 @@ public class AppService
         {
             try
             {
-                var parsed = JsonSerializer.Deserialize<List<string>>(listing.ImageGalleryJson) ?? [];
+                var parsed = JsonSerializer.Deserialize<List<string>>(listing.ImageGalleryJson) ?? new List<string>();
                 images.AddRange(parsed.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()));
             }
             catch
@@ -772,7 +773,7 @@ public class AppService
     public List<OfferDisplayViewModel> GetOffersForListing(int listingId)
     {
         var listing = GetListing(listingId);
-        if (listing is null) return [];
+        if (listing is null) return new List<OfferDisplayViewModel>();
 
         return _db.Offers
             .Where(o => o.ListingId == listingId)

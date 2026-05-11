@@ -212,7 +212,7 @@ public class ListingsController : Controller
             GalleryImages = gallery,
             OwnerUser = _appService.GetUser(listing.OwnerUserId),
             Comments = _appService.GetCommentsByListing(id),
-            Offers = isOwner || isAdmin ? _appService.GetOffersForListing(id) : [],
+            Offers = isOwner || isAdmin ? _appService.GetOffersForListing(id) : new List<OfferDisplayViewModel>(),
             IsAdmin = isAdmin,
             IsLoggedIn = isLoggedIn,
             CanEdit = isAdmin || isOwner,
@@ -866,10 +866,11 @@ public class ListingsController : Controller
 
     private static List<string> ParseAdditionalImageUrls(string value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return [];
+        if (string.IsNullOrWhiteSpace(value)) return new List<string>();
 
         return value
-            .Split(['\n', '\r', ',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Split(new char[] { '\n', '\r', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim())
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -877,10 +878,11 @@ public class ListingsController : Controller
 
     private static List<string> ParseExistingImages(string csv)
     {
-        if (string.IsNullOrWhiteSpace(csv)) return [];
+        if (string.IsNullOrWhiteSpace(csv)) return new List<string>();
 
         return csv
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim())
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();

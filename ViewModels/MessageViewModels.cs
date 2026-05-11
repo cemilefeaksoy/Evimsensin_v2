@@ -5,7 +5,7 @@ namespace Evimsensin.ViewModels;
 public class ChatThreadViewModel
 {
     public User OtherUser { get; set; } = new();
-    public List<Message> Messages { get; set; } = [];
+    public List<Message> Messages { get; set; } = new List<Message>();
     public int CurrentUserId { get; set; }
 }
 
@@ -22,7 +22,7 @@ public class InboxConversationItemViewModel
 
 public class InboxViewModel
 {
-    public List<InboxConversationItemViewModel> Conversations { get; set; } = [];
+    public List<InboxConversationItemViewModel> Conversations { get; set; } = new List<InboxConversationItemViewModel>();
     public int CurrentUserId { get; set; }
     public bool IsAdmin { get; set; }
 }

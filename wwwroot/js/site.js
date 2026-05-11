@@ -178,8 +178,11 @@
     if (!form) return;
 
     let submitted = false;
-    form.addEventListener('submit', () => {
-      if (submitted) return;
+    form.addEventListener('submit', (e) => {
+      if (submitted) {
+        e.preventDefault();
+        return;
+      }
       submitted = true;
 
       const submitBtn = document.getElementById('listingSubmitBtn');

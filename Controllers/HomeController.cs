@@ -15,7 +15,18 @@ public class HomeController : Controller
     public IActionResult Index()
     {
         ViewBag.UserName = AuthSession.UserName(this);
-        return View(_appService.GetListings().Take(6).ToList());
+        var allListings = _appService.GetListings();
+        var featured = allListings.Take(3).ToList();
+        var adminRecommended = allListings
+            .Where(x => x.IsAdminRecommended)
+            .Take(6)
+            .ToList();
+        if (adminRecommended.Count == 0)
+        {
+            adminRecommended = allListings.Skip(3).Take(6).ToList();
+        }
+        ViewBag.AdminRecommended = adminRecommended;
+        return View(featured);
     }
 
     public IActionResult About() => View();

@@ -2,10 +2,10 @@
 @{
     ViewData["Title"] = "Ilanlar";
     var isAdmin = Context.Session.GetString("Role") == "Admin";
-    var cities = ViewBag.Cities as List<string> ?? [];
-    var districts = ViewBag.Districts as List<string> ?? [];
-    var rooms = ViewBag.Rooms as List<string> ?? [];
-    var types = ViewBag.Types as List<string> ?? [];
+    var cities = ViewBag.Cities as List<string> ?? new List<string>();
+    var districts = ViewBag.Districts as List<string> ?? new List<string>();
+    var rooms = ViewBag.Rooms as List<string> ?? new List<string>();
+    var types = ViewBag.Types as List<string> ?? new List<string>();
     var detailed = (bool?)ViewBag.FilterDetailed == true;
     var locationMapJson = ViewBag.LocationMapJson as string ?? "{}";
     var allListings = Model.ToList();
@@ -20,44 +20,6 @@
 @if (TempData["Error"] is string error && !string.IsNullOrWhiteSpace(error))
 {
     <section class="panel toast-inline danger">@error</section>
-}
-
-@if (dailyRecommendedListings.Any())
-{
-    <section class="recommended-zone daily-top-zone reveal-on-scroll">
-        <div class="section-head slim">
-            <h2>Gunun Tavsiye Edilen Evleri</h2>
-            <p>Admin tarafindan secilen tavsiye ilanlar.</p>
-        </div>
-        <div class="recommended-stack">
-        @foreach (var item in dailyRecommendedListings)
-        {
-            <article class="card-premium tilt-card daily-top-card">
-                <a asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
-                    <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
-                    @if (item.IsRented)
-                    {
-                        <span class="rented-overlay">KIRALANDI</span>
-                    }
-                </a>
-                <div>
-                    <h3>@item.Title</h3>
-                    <p>@item.ListingPurpose · @item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
-                    <div class="actions actions-pro">
-                        <a class="btn-chat" asp-action="Details" asp-route-id="@item.Id">Detaya Git</a>
-                        @if (isAdmin)
-                        {
-                            <form asp-action="ToggleDailyRecommendation" method="post">
-                                <input type="hidden" name="id" value="@item.Id" />
-                                <button type="submit" class="btn-edit">Gunlukten Kaldir</button>
-                            </form>
-                        }
-                    </div>
-                </div>
-            </article>
-        }
-        </div>
-    </section>
 }
 
 <section class="panel reveal-on-scroll">
@@ -186,6 +148,50 @@
     </form>
 </section>
 
+@if (dailyRecommendedListings.Any())
+{
+    <section class="recommended-zone daily-top-zone reveal-on-scroll">
+        <div class="section-head slim">
+            <h2>🌟 Gunun Tavsiye Edilen Evleri</h2>
+            <p>Admin tarafindan secilen gunun tavsiye ilanlari.</p>
+        </div>
+        <div class="grid-cards" style="margin-top:14px;">
+        @foreach (var item in dailyRecommendedListings)
+        {
+            <article class="card-premium tilt-card daily-top-card reveal-on-scroll">
+                <a asp-action="Details" asp-route-id="@item.Id" class="card-image-link">
+                    <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+                    <span class="daily-badge-overlay">Gunun Tavsiyesi</span>
+                    @if (item.IsRented)
+                    {
+                        <span class="rented-overlay">KIRALANDI</span>
+                    }
+                </a>
+                <div>
+                    <h3>@item.Title</h3>
+                    <p>@item.ListingPurpose · @item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
+                    <p>@item.PropertyType · @item.RoomCount · @item.NetSquareMeters m²</p>
+                    <p class="owner-pill">
+                        Ilan Sahibi:
+                        <a asp-controller="Profiles" asp-action="Seller" asp-route-id="@item.OwnerUserId">@item.OwnerName</a>
+                    </p>
+                    <div class="actions actions-pro">
+                        <a class="btn-chat" asp-action="Details" asp-route-id="@item.Id">Detaya Git</a>
+                        @if (isAdmin)
+                        {
+                            <form asp-action="ToggleDailyRecommendation" method="post">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn-edit">Gunlukten Kaldir</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </article>
+        }
+        </div>
+    </section>
+}
+
 <section class="grid-cards">
 @if (!regularListings.Any())
 {
@@ -207,6 +213,10 @@
         <div>
             <h3>
                 @item.Title
+                @if (item.IsAdminRecommended)
+                {
+                    <span class="badge-star">★ Admin Oneri</span>
+                }
             </h3>
             <p>@item.ListingPurpose · @item.Province / @item.District · @item.MonthlyPrice.ToString("N0") TL</p>
             <p>@item.PropertyType · @item.RoomCount · @item.NetSquareMeters m²</p>
